@@ -29,17 +29,23 @@ export function Footer() {
           <div className="space-y-6">
             <h4 className="font-display text-lg font-semibold text-primary">Contato Exclusivo</h4>
             <div className="space-y-4 text-sm text-white/60">
-              <a href="mailto:contato@imobispace.com" className="flex items-center gap-3 hover:text-primary transition-colors">
+              <a href="mailto:imobispaceltda@gmail.com" className="flex items-center gap-3 hover:text-primary transition-colors">
                 <Mail className="w-4 h-4 text-primary/60" />
-                contato@imobispace.com
+                imobispaceltda@gmail.com
               </a>
-              <a href="tel:+5511999999999" className="flex items-center gap-3 hover:text-primary transition-colors">
+              <a 
+                href="https://wa.me/message/KWT6CLRH3G2MH1" 
+                target="_blank" 
+                rel="noopener noreferrer"
+                className="flex items-center gap-3 hover:text-primary transition-colors"
+              >
                 <Phone className="w-4 h-4 text-primary/60" />
-                (11) 99999-9999
+                (41) 99548-2208
+                <span className="text-xs bg-green-600 text-white px-2 py-0.5 rounded-full">WhatsApp</span>
               </a>
               <p className="flex items-center gap-3">
                 <MapPin className="w-4 h-4 text-primary/60" />
-                São Paulo, SP
+                Curitiba, PR
               </p>
             </div>
           </div>
