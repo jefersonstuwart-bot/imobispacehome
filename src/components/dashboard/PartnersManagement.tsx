@@ -7,13 +7,12 @@ import { Label } from '@/components/ui/label';
 import { Switch } from '@/components/ui/switch';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
-import { Plus, Trash2, Loader2, ExternalLink, GripVertical } from 'lucide-react';
+import { Plus, Trash2, Loader2, GripVertical } from 'lucide-react';
 
 interface Partner {
   id: string;
   name: string;
   logo_url: string;
-  website_url: string | null;
   is_active: boolean;
   display_order: number;
 }
@@ -21,10 +20,7 @@ interface Partner {
 export function PartnersManagement() {
   const [isAdding, setIsAdding] = useState(false);
   const [uploading, setUploading] = useState(false);
-  const [formData, setFormData] = useState({
-    name: '',
-    website_url: '',
-  });
+  const [partnerName, setPartnerName] = useState('');
   const [logoUrl, setLogoUrl] = useState<string | null>(null);
 
   const queryClient = useQueryClient();
@@ -42,7 +38,7 @@ export function PartnersManagement() {
   });
 
   const createMutation = useMutation({
-    mutationFn: async (data: { name: string; logo_url: string; website_url: string | null }) => {
+    mutationFn: async (data: { name: string; logo_url: string }) => {
       const maxOrder = partners?.reduce((max, p) => Math.max(max, p.display_order), 0) || 0;
       const { error } = await supabase.from('partners').insert([{
         ...data,
@@ -89,7 +85,7 @@ export function PartnersManagement() {
   });
 
   const resetForm = () => {
-    setFormData({ name: '', website_url: '' });
+    setPartnerName('');
     setLogoUrl(null);
     setIsAdding(false);
   };
@@ -116,15 +112,14 @@ export function PartnersManagement() {
   };
 
   const handleSubmit = () => {
-    if (!formData.name || !logoUrl) {
+    if (!partnerName || !logoUrl) {
       toast.error('Nome e logo são obrigatórios');
       return;
     }
 
     createMutation.mutate({
-      name: formData.name,
+      name: partnerName,
       logo_url: logoUrl,
-      website_url: formData.website_url || null,
     });
   };
 
@@ -152,21 +147,13 @@ export function PartnersManagement() {
       <CardContent>
         {isAdding && (
           <div className="mb-6 p-4 border border-border rounded-lg bg-muted/30">
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <div className="space-y-2">
                 <Label>Nome do Parceiro *</Label>
                 <Input
                   placeholder="Nome da empresa"
-                  value={formData.name}
-                  onChange={(e) => setFormData(prev => ({ ...prev, name: e.target.value }))}
-                />
-              </div>
-              <div className="space-y-2">
-                <Label>Website</Label>
-                <Input
-                  placeholder="https://site.com"
-                  value={formData.website_url}
-                  onChange={(e) => setFormData(prev => ({ ...prev, website_url: e.target.value }))}
+                  value={partnerName}
+                  onChange={(e) => setPartnerName(e.target.value)}
                 />
               </div>
               <div className="space-y-2">
@@ -245,16 +232,6 @@ export function PartnersManagement() {
                     onCheckedChange={() => toggleActive(partner)}
                     className="scale-75"
                   />
-                  {partner.website_url && (
-                    <Button
-                      variant="ghost"
-                      size="icon"
-                      className="h-6 w-6"
-                      onClick={() => window.open(partner.website_url!, '_blank')}
-                    >
-                      <ExternalLink className="w-3 h-3" />
-                    </Button>
-                  )}
                   <Button
                     variant="ghost"
                     size="icon"
