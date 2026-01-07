@@ -81,6 +81,39 @@ export type Database = {
           },
         ]
       }
+      partners: {
+        Row: {
+          created_at: string
+          created_by: string | null
+          display_order: number | null
+          id: string
+          is_active: boolean | null
+          logo_url: string
+          name: string
+          website_url: string | null
+        }
+        Insert: {
+          created_at?: string
+          created_by?: string | null
+          display_order?: number | null
+          id?: string
+          is_active?: boolean | null
+          logo_url: string
+          name: string
+          website_url?: string | null
+        }
+        Update: {
+          created_at?: string
+          created_by?: string | null
+          display_order?: number | null
+          id?: string
+          is_active?: boolean | null
+          logo_url?: string
+          name?: string
+          website_url?: string | null
+        }
+        Relationships: []
+      }
       profiles: {
         Row: {
           created_at: string | null

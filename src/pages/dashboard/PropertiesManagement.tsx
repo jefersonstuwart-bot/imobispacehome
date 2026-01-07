@@ -15,6 +15,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
 import { Plus, Pencil, Trash2, Sparkles, Loader2, MapPin, Image, FileText, Eye, Building2, DollarSign, Ruler } from 'lucide-react';
+import { PartnersManagement } from '@/components/dashboard/PartnersManagement';
 
 interface Property {
   id: string;
@@ -943,6 +944,9 @@ export default function PropertiesManagement() {
             ))}
           </div>
         )}
+
+        {/* Partners Section */}
+        <PartnersManagement />
       </div>
     </DashboardLayout>
   );
