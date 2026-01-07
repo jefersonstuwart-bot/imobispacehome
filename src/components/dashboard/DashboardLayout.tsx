@@ -9,10 +9,10 @@ import {
   Users, 
   FileText, 
   LogOut, 
-  Home,
   ChevronRight,
   Loader2
 } from 'lucide-react';
+import logo from '@/assets/logo-imobispace.png';
 
 interface DashboardLayoutProps {
   children: ReactNode;
@@ -40,6 +40,17 @@ export function DashboardLayout({ children }: DashboardLayoutProps) {
     }
   }, [user, loading, navigate]);
 
+  // Corretor tentando acessar área de admin - redirecionar
+  useEffect(() => {
+    if (!loading && user && !isAdmin) {
+      const adminPaths = ['/dashboard/empreendimentos', '/dashboard/corretores', '/dashboard/propostas'];
+      const isAdminPath = adminPaths.some(path => location.pathname.startsWith(path));
+      if (isAdminPath || location.pathname === '/dashboard') {
+        navigate('/dashboard/corretor');
+      }
+    }
+  }, [user, loading, isAdmin, location.pathname, navigate]);
+
   if (loading) {
     return (
       <div className="min-h-screen flex items-center justify-center bg-muted">
@@ -64,17 +75,11 @@ export function DashboardLayout({ children }: DashboardLayoutProps) {
         {/* Logo */}
         <div className="p-4 border-b border-border">
           <Link to="/" className="flex items-center gap-2 group">
-            <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-primary to-secondary flex items-center justify-center shadow-elegant group-hover:scale-105 transition-transform">
-              <Home className="w-5 h-5 text-white" />
-            </div>
-            <div className="flex flex-col">
-              <span className="font-display text-lg font-bold text-foreground">
-                ImobiSpace
-              </span>
-              <span className="text-xs text-muted-foreground -mt-0.5">
-                {isAdmin ? 'Painel Gestor' : 'Painel Corretor'}
-              </span>
-            </div>
+            <img 
+              src={logo} 
+              alt="ImobiSpace Home" 
+              className="h-12 w-auto group-hover:scale-105 transition-transform"
+            />
           </Link>
         </div>
 

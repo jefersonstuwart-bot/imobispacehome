@@ -50,7 +50,6 @@ export default function PropertiesManagement() {
     location: '',
     description: '',
     ai_description: '',
-    floorPlanDetails: '',
   });
   const [uploadingImages, setUploadingImages] = useState(false);
   const [uploadedImages, setUploadedImages] = useState<string[]>([]);
@@ -193,7 +192,7 @@ export default function PropertiesManagement() {
   });
 
   const resetForm = () => {
-    setFormData({ name: '', location: '', description: '', ai_description: '', floorPlanDetails: '' });
+    setFormData({ name: '', location: '', description: '', ai_description: '' });
     setUploadedImages([]);
     setPdfUrl(null);
     setPdfCoverImage(null);
@@ -222,7 +221,6 @@ export default function PropertiesManagement() {
       location: property.location,
       description: property.description || '',
       ai_description: property.ai_description || '',
-      floorPlanDetails: '',
     });
     setUploadedImages(property.images || []);
     setPdfUrl(property.pdf_url);
@@ -324,7 +322,7 @@ export default function PropertiesManagement() {
           name: formData.name,
           location: formData.location,
           description: formData.description,
-          floorPlanDetails: formData.floorPlanDetails,
+          pdfUrl: pdfUrl,
           images: uploadedImages,
         },
       });
@@ -580,16 +578,9 @@ export default function PropertiesManagement() {
                 </TabsContent>
 
                 <TabsContent value="ai" className="space-y-4 py-4">
-                  <div className="space-y-2">
-                    <Label>Detalhes da Planta/Metragem</Label>
-                    <Textarea
-                      placeholder="Ex: Apartamentos de 65m² a 120m², 2 a 3 suítes, 2 vagas, varanda gourmet..."
-                      rows={3}
-                      value={formData.floorPlanDetails}
-                      onChange={(e) => setFormData(prev => ({ ...prev, floorPlanDetails: e.target.value }))}
-                    />
-                    <p className="text-xs text-muted-foreground">
-                      Estas informações serão usadas pela IA para gerar uma descrição mais completa
+                  <div className="p-4 rounded-lg bg-primary/5 border border-primary/20">
+                    <p className="text-sm text-muted-foreground">
+                      <strong>💡 Dica:</strong> A IA irá analisar o PDF do empreendimento (se enviado) para extrair automaticamente informações de planta, metragem e especificações técnicas.
                     </p>
                   </div>
 
