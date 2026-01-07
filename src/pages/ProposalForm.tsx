@@ -13,9 +13,10 @@ import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from '
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
 import { Label } from '@/components/ui/label';
+import { Alert, AlertDescription } from '@/components/ui/alert';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
-import { ChevronLeft, Upload, Loader2, CheckCircle, User, FileText, CreditCard } from 'lucide-react';
+import { ChevronLeft, Upload, Loader2, CheckCircle, User, FileText, CreditCard, AlertTriangle, RefreshCw } from 'lucide-react';
 import { MARITAL_STATUS_LABELS, PROPOSAL_TYPE_LABELS, DOCUMENT_TYPES, SPOUSE_DOCUMENT_TYPES } from '@/lib/constants';
 
 const proposalSchema = z.object({
@@ -35,12 +36,19 @@ const proposalSchema = z.object({
 
 type ProposalFormData = z.infer<typeof proposalSchema>;
 
+interface DocumentStatus {
+  file: File;
+  status: 'pending' | 'checking' | 'valid' | 'invalid';
+  issues?: string[];
+  recommendation?: string;
+}
+
 export default function ProposalForm() {
   const { propertyId } = useParams<{ propertyId: string }>();
   const navigate = useNavigate();
   const [isSubmitting, setIsSubmitting] = useState(false);
-  const [uploadedDocs, setUploadedDocs] = useState<Record<string, File>>({});
-  const [uploadingDoc, setUploadingDoc] = useState<string | null>(null);
+  const [uploadedDocs, setUploadedDocs] = useState<Record<string, DocumentStatus>>({});
+  const [checkingDoc, setCheckingDoc] = useState<string | null>(null);
 
   const { data: property } = useQuery({
     queryKey: ['property', propertyId],
@@ -74,17 +82,93 @@ export default function ProposalForm() {
   const maritalStatus = form.watch('client_marital_status');
   const isMarried = maritalStatus === 'married';
 
-  const handleFileUpload = (docType: string) => (e: React.ChangeEvent<HTMLInputElement>) => {
+  const fileToBase64 = (file: File): Promise<string> => {
+    return new Promise((resolve, reject) => {
+      const reader = new FileReader();
+      reader.readAsDataURL(file);
+      reader.onload = () => resolve(reader.result as string);
+      reader.onerror = (error) => reject(error);
+    });
+  };
+
+  const verifyDocumentQuality = async (file: File, docType: string): Promise<{ isValid: boolean; issues: string[]; recommendation: string }> => {
+    // Só verificar se for imagem
+    if (!file.type.startsWith('image/')) {
+      return { isValid: true, issues: [], recommendation: '' };
+    }
+
+    try {
+      const base64 = await fileToBase64(file);
+      
+      const { data, error } = await supabase.functions.invoke('verify-document', {
+        body: { imageBase64: base64, documentType: docType },
+      });
+
+      if (error) {
+        console.error('Erro na verificação:', error);
+        return { isValid: true, issues: [], recommendation: '' };
+      }
+
+      return {
+        isValid: data.isValid ?? true,
+        issues: data.issues || [],
+        recommendation: data.recommendation || '',
+      };
+    } catch (err) {
+      console.error('Erro ao verificar documento:', err);
+      return { isValid: true, issues: [], recommendation: '' };
+    }
+  };
+
+  const handleFileUpload = (docType: string, docLabel: string) => async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
-    if (file) {
-      setUploadedDocs(prev => ({ ...prev, [docType]: file }));
+    if (!file) return;
+
+    // Verificar duplicado (mesmo arquivo em outro tipo de documento)
+    const existingFiles = Object.entries(uploadedDocs);
+    const isDuplicate = existingFiles.some(([key, doc]) => 
+      key !== docType && doc.file.name === file.name && doc.file.size === file.size
+    );
+
+    if (isDuplicate) {
+      toast.error('Documento duplicado', {
+        description: 'Este arquivo já foi enviado para outro tipo de documento.',
+      });
+      return;
+    }
+
+    setUploadedDocs(prev => ({
+      ...prev,
+      [docType]: { file, status: 'checking' },
+    }));
+    setCheckingDoc(docType);
+
+    // Verificar qualidade do documento
+    const verification = await verifyDocumentQuality(file, docLabel);
+
+    setUploadedDocs(prev => ({
+      ...prev,
+      [docType]: {
+        file,
+        status: verification.isValid ? 'valid' : 'invalid',
+        issues: verification.issues,
+        recommendation: verification.recommendation,
+      },
+    }));
+    setCheckingDoc(null);
+
+    if (!verification.isValid) {
+      toast.warning('Documento precisa de atenção', {
+        description: verification.recommendation || 'Por favor, envie um documento mais nítido.',
+      });
     }
   };
 
   const uploadDocuments = async (proposalId: string) => {
     const documents: { proposal_id: string; document_type: string; file_url: string; file_name: string; is_spouse_document: boolean }[] = [];
 
-    for (const [docType, file] of Object.entries(uploadedDocs)) {
+    for (const [docType, docStatus] of Object.entries(uploadedDocs)) {
+      const file = docStatus.file;
       const fileExt = file.name.split('.').pop();
       const fileName = `${proposalId}/${docType}.${fileExt}`;
 
@@ -125,6 +209,15 @@ export default function ProposalForm() {
     if (missingDocs.length > 0) {
       toast.error('Documentos obrigatórios faltando', {
         description: 'Por favor, faça upload de todos os documentos obrigatórios.',
+      });
+      return;
+    }
+
+    // Verificar se há documentos inválidos
+    const invalidDocs = Object.entries(uploadedDocs).filter(([_, doc]) => doc.status === 'invalid');
+    if (invalidDocs.length > 0) {
+      toast.error('Documentos com problemas', {
+        description: 'Por favor, substitua os documentos marcados como inválidos por versões mais nítidas.',
       });
       return;
     }
@@ -186,6 +279,89 @@ export default function ProposalForm() {
     }
   };
 
+  const renderDocumentUpload = (doc: { id: string; label: string; required: boolean }) => {
+    const docStatus = uploadedDocs[doc.id];
+    const isChecking = checkingDoc === doc.id;
+
+    return (
+      <div key={doc.id} className="space-y-2">
+        <Label className="flex items-center gap-1">
+          {doc.label}
+          {doc.required && <span className="text-destructive">*</span>}
+        </Label>
+        <div className="relative">
+          <input
+            type="file"
+            accept=".pdf,.jpg,.jpeg,.png"
+            onChange={handleFileUpload(doc.id, doc.label)}
+            className="absolute inset-0 w-full h-full opacity-0 cursor-pointer"
+            disabled={isChecking}
+          />
+          <div className={`flex items-center justify-center gap-2 p-3 border-2 border-dashed rounded-lg transition-colors ${
+            isChecking 
+              ? 'border-primary bg-primary/5'
+              : docStatus?.status === 'valid'
+                ? 'border-success bg-success/10' 
+                : docStatus?.status === 'invalid'
+                  ? 'border-destructive bg-destructive/10'
+                  : 'border-muted-foreground/30 hover:border-primary'
+          }`}>
+            {isChecking ? (
+              <>
+                <Loader2 className="w-4 h-4 animate-spin text-primary" />
+                <span className="text-sm text-primary">Verificando nitidez...</span>
+              </>
+            ) : docStatus?.status === 'valid' ? (
+              <>
+                <CheckCircle className="w-4 h-4 text-success" />
+                <span className="text-sm text-success truncate max-w-[150px]">
+                  {docStatus.file.name}
+                </span>
+              </>
+            ) : docStatus?.status === 'invalid' ? (
+              <>
+                <AlertTriangle className="w-4 h-4 text-destructive" />
+                <span className="text-sm text-destructive truncate max-w-[150px]">
+                  {docStatus.file.name}
+                </span>
+              </>
+            ) : (
+              <>
+                <Upload className="w-4 h-4 text-muted-foreground" />
+                <span className="text-sm text-muted-foreground">Selecionar arquivo</span>
+              </>
+            )}
+          </div>
+        </div>
+        
+        {docStatus?.status === 'invalid' && docStatus.recommendation && (
+          <Alert variant="destructive" className="py-2">
+            <AlertTriangle className="h-4 w-4" />
+            <AlertDescription className="text-xs flex items-center justify-between">
+              <span>{docStatus.recommendation}</span>
+              <Button
+                type="button"
+                variant="ghost"
+                size="sm"
+                className="h-6 px-2 text-xs"
+                onClick={() => {
+                  setUploadedDocs(prev => {
+                    const newDocs = { ...prev };
+                    delete newDocs[doc.id];
+                    return newDocs;
+                  });
+                }}
+              >
+                <RefreshCw className="w-3 h-3 mr-1" />
+                Trocar
+              </Button>
+            </AlertDescription>
+          </Alert>
+        )}
+      </div>
+    );
+  };
+
   return (
     <Layout>
       <div className="container py-8 max-w-3xl">
@@ -208,10 +384,10 @@ export default function ProposalForm() {
         <Form {...form}>
           <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
             {/* Dados Pessoais */}
-            <Card className="border-0 shadow-elegant">
+            <Card className="border-0 shadow-luxury">
               <CardHeader>
                 <CardTitle className="flex items-center gap-2">
-                  <User className="w-5 h-5 text-secondary" />
+                  <User className="w-5 h-5 text-primary" />
                   Dados Pessoais
                 </CardTitle>
                 <CardDescription>Preencha seus dados para contato</CardDescription>
@@ -358,51 +534,19 @@ export default function ProposalForm() {
             </Card>
 
             {/* Documentos */}
-            <Card className="border-0 shadow-elegant">
+            <Card className="border-0 shadow-luxury">
               <CardHeader>
                 <CardTitle className="flex items-center gap-2">
-                  <FileText className="w-5 h-5 text-secondary" />
+                  <FileText className="w-5 h-5 text-primary" />
                   Documentos
                 </CardTitle>
-                <CardDescription>Faça upload dos documentos obrigatórios</CardDescription>
+                <CardDescription>
+                  Faça upload dos documentos obrigatórios. A IA verificará a nitidez automaticamente.
+                </CardDescription>
               </CardHeader>
               <CardContent className="space-y-4">
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                  {DOCUMENT_TYPES.map((doc) => (
-                    <div key={doc.id} className="space-y-2">
-                      <Label className="flex items-center gap-1">
-                        {doc.label}
-                        {doc.required && <span className="text-destructive">*</span>}
-                      </Label>
-                      <div className="relative">
-                        <input
-                          type="file"
-                          accept=".pdf,.jpg,.jpeg,.png"
-                          onChange={handleFileUpload(doc.id)}
-                          className="absolute inset-0 w-full h-full opacity-0 cursor-pointer"
-                        />
-                        <div className={`flex items-center justify-center gap-2 p-3 border-2 border-dashed rounded-lg transition-colors ${
-                          uploadedDocs[doc.id] 
-                            ? 'border-success bg-success/10' 
-                            : 'border-muted-foreground/30 hover:border-primary'
-                        }`}>
-                          {uploadedDocs[doc.id] ? (
-                            <>
-                              <CheckCircle className="w-4 h-4 text-success" />
-                              <span className="text-sm text-success truncate max-w-[150px]">
-                                {uploadedDocs[doc.id].name}
-                              </span>
-                            </>
-                          ) : (
-                            <>
-                              <Upload className="w-4 h-4 text-muted-foreground" />
-                              <span className="text-sm text-muted-foreground">Selecionar arquivo</span>
-                            </>
-                          )}
-                        </div>
-                      </div>
-                    </div>
-                  ))}
+                  {DOCUMENT_TYPES.map(renderDocumentUpload)}
                 </div>
 
                 {/* Documentos do Cônjuge */}
@@ -412,41 +556,7 @@ export default function ProposalForm() {
                       <h4 className="font-medium mb-4">Documentos do Cônjuge</h4>
                     </div>
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                      {SPOUSE_DOCUMENT_TYPES.map((doc) => (
-                        <div key={doc.id} className="space-y-2">
-                          <Label className="flex items-center gap-1">
-                            {doc.label}
-                            {doc.required && <span className="text-destructive">*</span>}
-                          </Label>
-                          <div className="relative">
-                            <input
-                              type="file"
-                              accept=".pdf,.jpg,.jpeg,.png"
-                              onChange={handleFileUpload(doc.id)}
-                              className="absolute inset-0 w-full h-full opacity-0 cursor-pointer"
-                            />
-                            <div className={`flex items-center justify-center gap-2 p-3 border-2 border-dashed rounded-lg transition-colors ${
-                              uploadedDocs[doc.id] 
-                                ? 'border-success bg-success/10' 
-                                : 'border-muted-foreground/30 hover:border-primary'
-                            }`}>
-                              {uploadedDocs[doc.id] ? (
-                                <>
-                                  <CheckCircle className="w-4 h-4 text-success" />
-                                  <span className="text-sm text-success truncate max-w-[150px]">
-                                    {uploadedDocs[doc.id].name}
-                                  </span>
-                                </>
-                              ) : (
-                                <>
-                                  <Upload className="w-4 h-4 text-muted-foreground" />
-                                  <span className="text-sm text-muted-foreground">Selecionar arquivo</span>
-                                </>
-                              )}
-                            </div>
-                          </div>
-                        </div>
-                      ))}
+                      {SPOUSE_DOCUMENT_TYPES.map(renderDocumentUpload)}
                     </div>
                   </>
                 )}
@@ -454,10 +564,10 @@ export default function ProposalForm() {
             </Card>
 
             {/* Proposta */}
-            <Card className="border-0 shadow-elegant">
+            <Card className="border-0 shadow-luxury">
               <CardHeader>
                 <CardTitle className="flex items-center gap-2">
-                  <CreditCard className="w-5 h-5 text-secondary" />
+                  <CreditCard className="w-5 h-5 text-primary" />
                   Detalhes da Proposta
                 </CardTitle>
                 <CardDescription>Informe os detalhes da sua proposta</CardDescription>
@@ -522,10 +632,10 @@ export default function ProposalForm() {
 
             <Button
               type="submit"
-              variant="hero"
-              size="xl"
+              variant="gold"
+              size="lg"
               className="w-full"
-              disabled={isSubmitting}
+              disabled={isSubmitting || checkingDoc !== null}
             >
               {isSubmitting ? (
                 <>
