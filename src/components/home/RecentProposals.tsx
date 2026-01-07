@@ -96,11 +96,11 @@ export function RecentProposals() {
     }
   }, [properties]);
 
-  // Rotacionar propostas a cada 5 segundos
+  // Rotacionar propostas a cada 8 segundos (mais lento)
   useEffect(() => {
     const interval = setInterval(() => {
       setCurrentIndex(prev => (prev + 1) % mockProposals.length);
-    }, 5000);
+    }, 8000);
     return () => clearInterval(interval);
   }, []);
 

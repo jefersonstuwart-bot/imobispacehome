@@ -8,14 +8,16 @@ interface PropertyCardProps {
     id: string;
     name: string;
     location: string;
-    images: string[];
+    images: string[] | null;
     ai_description: string | null;
     pdf_url: string | null;
+    pdf_cover_image: string | null;
   };
 }
 
 export function PropertyCard({ property }: PropertyCardProps) {
-  const mainImage = property.images?.[0] || '/placeholder.svg';
+  // Prioriza: imagem do array > imagem de capa do PDF > placeholder
+  const mainImage = property.images?.[0] || property.pdf_cover_image || '/placeholder.svg';
   const shortDescription = property.ai_description?.slice(0, 100) + '...' || 'Detalhes em breve...';
 
   return (
