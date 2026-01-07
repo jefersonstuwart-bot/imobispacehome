@@ -2,6 +2,7 @@ import { useQuery } from '@tanstack/react-query';
 import { Layout } from '@/components/layout/Layout';
 import { HeroSection } from '@/components/home/HeroSection';
 import { PropertyGrid } from '@/components/properties/PropertyGrid';
+import { RecentProposals } from '@/components/home/RecentProposals';
 import { supabase } from '@/integrations/supabase/client';
 import { Sparkles } from 'lucide-react';
 
@@ -47,6 +48,9 @@ export default function Index() {
           <PropertyGrid properties={properties || []} loading={isLoading} />
         </div>
       </section>
+
+      {/* Seção de Marketing - Propostas Recentes */}
+      <RecentProposals />
 
       {/* Seção de destaque adicional */}
       <section className="py-20 bg-secondary text-white">

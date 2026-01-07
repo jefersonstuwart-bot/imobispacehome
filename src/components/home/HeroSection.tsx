@@ -69,18 +69,18 @@ export function HeroSection() {
         {/* Indicadores de credibilidade */}
         <div className="flex items-center justify-center gap-12 mt-20 animate-fade-in" style={{ animationDelay: '0.6s' }}>
           <div className="text-center">
-            <p className="font-display text-3xl md:text-4xl font-semibold text-primary">50+</p>
-            <p className="text-xs uppercase tracking-widest text-white/50 mt-1">Empreendimentos</p>
+            <p className="font-display text-3xl md:text-4xl font-bold text-primary drop-shadow-[0_0_10px_rgba(212,175,55,0.5)]">50+</p>
+            <p className="text-sm uppercase tracking-widest text-white font-medium mt-2 drop-shadow-md">Empreendimentos</p>
           </div>
-          <div className="w-px h-12 bg-white/20" />
+          <div className="w-px h-16 bg-primary/40" />
           <div className="text-center">
-            <p className="font-display text-3xl md:text-4xl font-semibold text-primary">R$2B+</p>
-            <p className="text-xs uppercase tracking-widest text-white/50 mt-1">Em Negociações</p>
+            <p className="font-display text-3xl md:text-4xl font-bold text-primary drop-shadow-[0_0_10px_rgba(212,175,55,0.5)]">R$2B+</p>
+            <p className="text-sm uppercase tracking-widest text-white font-medium mt-2 drop-shadow-md">Em Negociações</p>
           </div>
-          <div className="w-px h-12 bg-white/20" />
+          <div className="w-px h-16 bg-primary/40" />
           <div className="text-center">
-            <p className="font-display text-3xl md:text-4xl font-semibold text-primary">500+</p>
-            <p className="text-xs uppercase tracking-widest text-white/50 mt-1">Clientes Premium</p>
+            <p className="font-display text-3xl md:text-4xl font-bold text-primary drop-shadow-[0_0_10px_rgba(212,175,55,0.5)]">500+</p>
+            <p className="text-sm uppercase tracking-widest text-white font-medium mt-2 drop-shadow-md">Clientes Premium</p>
           </div>
         </div>
       </div>

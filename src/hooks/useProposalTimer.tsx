@@ -90,6 +90,7 @@ export const useProposalTimer = (proposalId?: string, assignedAt?: string) => {
 // Hook to manage multiple proposal timers
 export const useProposalTimers = (proposals: Array<{ id: string; assigned_at: string | null; status: string }> | undefined) => {
   const [timers, setTimers] = useState<Map<string, ProposalWithTimer>>(new Map());
+  const [expiredIds, setExpiredIds] = useState<Set<string>>(new Set());
 
   useEffect(() => {
     if (!proposals) return;
@@ -115,8 +116,9 @@ export const useProposalTimers = (proposals: Array<{ id: string; assigned_at: st
           percentRemaining: (remaining / ACCEPTANCE_TIMEOUT_MS) * 100,
         });
 
-        // Auto-redistribute expired proposals
-        if (remaining <= 0) {
+        // Auto-redistribute expired proposals only once
+        if (remaining <= 0 && !expiredIds.has(proposal.id)) {
+          setExpiredIds(prev => new Set(prev).add(proposal.id));
           redistributeExpiredProposal(proposal.id);
         }
       });
@@ -128,7 +130,7 @@ export const useProposalTimers = (proposals: Array<{ id: string; assigned_at: st
     const interval = setInterval(updateTimers, 1000);
 
     return () => clearInterval(interval);
-  }, [proposals]);
+  }, [proposals, expiredIds]);
 
   const redistributeExpiredProposal = async (id: string) => {
     try {
