@@ -134,6 +134,7 @@ export type Database = {
           is_active: boolean | null
           location: string
           name: string
+          pdf_cover_image: string | null
           pdf_url: string | null
           updated_at: string | null
         }
@@ -147,6 +148,7 @@ export type Database = {
           is_active?: boolean | null
           location: string
           name: string
+          pdf_cover_image?: string | null
           pdf_url?: string | null
           updated_at?: string | null
         }
@@ -160,6 +162,7 @@ export type Database = {
           is_active?: boolean | null
           location?: string
           name?: string
+          pdf_cover_image?: string | null
           pdf_url?: string | null
           updated_at?: string | null
         }
@@ -169,6 +172,59 @@ export type Database = {
             columns: ["created_by"]
             isOneToOne: false
             referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      property_prices: {
+        Row: {
+          area_m2: number
+          bedrooms: number | null
+          created_at: string
+          floor: string | null
+          id: string
+          parking_spots: number | null
+          price: number
+          property_id: string
+          status: string | null
+          suites: number | null
+          unit_type: string
+          updated_at: string
+        }
+        Insert: {
+          area_m2: number
+          bedrooms?: number | null
+          created_at?: string
+          floor?: string | null
+          id?: string
+          parking_spots?: number | null
+          price: number
+          property_id: string
+          status?: string | null
+          suites?: number | null
+          unit_type: string
+          updated_at?: string
+        }
+        Update: {
+          area_m2?: number
+          bedrooms?: number | null
+          created_at?: string
+          floor?: string | null
+          id?: string
+          parking_spots?: number | null
+          price?: number
+          property_id?: string
+          status?: string | null
+          suites?: number | null
+          unit_type?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "property_prices_property_id_fkey"
+            columns: ["property_id"]
+            isOneToOne: false
+            referencedRelation: "properties"
             referencedColumns: ["id"]
           },
         ]

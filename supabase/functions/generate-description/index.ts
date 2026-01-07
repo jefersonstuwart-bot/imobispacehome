@@ -12,22 +12,26 @@ serve(async (req) => {
   }
 
   try {
-    const { name, location, description, images } = await req.json();
+    const { name, location, description, images, floorPlanDetails } = await req.json();
 
-    const prompt = `Você é um especialista em marketing imobiliário. Crie uma descrição persuasiva e profissional para o seguinte empreendimento imobiliário:
+    const prompt = `Você é um especialista em marketing imobiliário de alto luxo. Crie uma descrição sofisticada e persuasiva para o seguinte empreendimento imobiliário premium:
 
 Nome: ${name}
 Localização: ${location}
 ${description ? `Descrição base: ${description}` : ''}
+${floorPlanDetails ? `Detalhes da Planta/Metragem: ${floorPlanDetails}` : ''}
 ${images?.length ? `Número de imagens disponíveis: ${images.length}` : ''}
 
 A descrição deve:
-- Ser envolvente e emocional, focada em conversão
-- Destacar os benefícios de morar no local
-- Usar linguagem profissional e persuasiva
-- Ter entre 150-250 palavras
-- Incluir chamadas à ação sutis
-- Destacar qualidade de vida e investimento
+- Usar linguagem de alto padrão e exclusividade
+- Destacar a planta, metragem e características técnicas se disponíveis
+- Mencionar acabamentos de luxo e diferenciais
+- Ser envolvente e aspiracional, focada em conversão
+- Destacar os benefícios exclusivos de morar no local
+- Ter entre 200-300 palavras
+- Incluir chamadas à ação sutis e elegantes
+- Enfatizar investimento premium e qualidade de vida diferenciada
+- Mencionar detalhes como número de suítes, vagas, áreas de lazer se aplicável
 
 Responda APENAS com a descrição, sem títulos ou formatação adicional.`;
 
@@ -46,7 +50,7 @@ Responda APENAS com a descrição, sem títulos ou formatação adicional.`;
           },
         ],
         temperature: 0.7,
-        max_tokens: 500,
+        max_tokens: 600,
       }),
     });
 
