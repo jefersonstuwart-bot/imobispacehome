@@ -34,6 +34,22 @@ serve(async (req) => {
       );
     }
 
+    // Download the PDF and convert to base64
+    console.log('Downloading PDF...');
+    const pdfResponse = await fetch(pdfUrl);
+    if (!pdfResponse.ok) {
+      console.error('Failed to download PDF:', pdfResponse.status);
+      return new Response(
+        JSON.stringify({ error: 'Failed to download PDF', details: `Status: ${pdfResponse.status}` }),
+        { status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+      );
+    }
+
+    const pdfBuffer = await pdfResponse.arrayBuffer();
+    const pdfBase64 = btoa(String.fromCharCode(...new Uint8Array(pdfBuffer)));
+    const pdfDataUrl = `data:application/pdf;base64,${pdfBase64}`;
+    console.log('PDF downloaded and converted to base64, size:', pdfBuffer.byteLength);
+
     // Use AI to generate a cover image from the PDF
     const response = await fetch('https://ai.gateway.lovable.dev/v1/chat/completions', {
       method: 'POST',
@@ -62,7 +78,7 @@ Se não conseguir extrair uma imagem do PDF, gere uma renderização 3D realista
               {
                 type: 'image_url',
                 image_url: {
-                  url: pdfUrl
+                  url: pdfDataUrl
                 }
               }
             ]
