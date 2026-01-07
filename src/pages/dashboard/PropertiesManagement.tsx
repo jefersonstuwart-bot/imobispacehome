@@ -9,9 +9,12 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from 
 import { Label } from '@/components/ui/label';
 import { Badge } from '@/components/ui/badge';
 import { Switch } from '@/components/ui/switch';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
-import { Plus, Pencil, Trash2, Upload, Sparkles, Loader2, MapPin, Image, FileText, Eye, Building2 } from 'lucide-react';
+import { Plus, Pencil, Trash2, Sparkles, Loader2, MapPin, Image, FileText, Eye, Building2, DollarSign, Ruler } from 'lucide-react';
 
 interface Property {
   id: string;
@@ -21,8 +24,22 @@ interface Property {
   ai_description: string | null;
   images: string[];
   pdf_url: string | null;
+  pdf_cover_image: string | null;
   is_active: boolean;
   created_at: string;
+}
+
+interface PropertyPrice {
+  id: string;
+  property_id: string;
+  unit_type: string;
+  area_m2: number;
+  bedrooms: number | null;
+  suites: number | null;
+  parking_spots: number | null;
+  price: number;
+  floor: string | null;
+  status: string | null;
 }
 
 export default function PropertiesManagement() {
@@ -33,12 +50,30 @@ export default function PropertiesManagement() {
     location: '',
     description: '',
     ai_description: '',
+    floorPlanDetails: '',
   });
   const [uploadingImages, setUploadingImages] = useState(false);
   const [uploadedImages, setUploadedImages] = useState<string[]>([]);
   const [uploadingPdf, setUploadingPdf] = useState(false);
   const [pdfUrl, setPdfUrl] = useState<string | null>(null);
+  const [pdfCoverImage, setPdfCoverImage] = useState<string | null>(null);
+  const [uploadingCover, setUploadingCover] = useState(false);
   const [generatingAI, setGeneratingAI] = useState(false);
+  
+  // Preços
+  const [pricesDialogOpen, setPricesDialogOpen] = useState(false);
+  const [selectedPropertyForPrices, setSelectedPropertyForPrices] = useState<Property | null>(null);
+  const [priceForm, setPriceForm] = useState({
+    unit_type: '',
+    area_m2: '',
+    bedrooms: '',
+    suites: '',
+    parking_spots: '',
+    price: '',
+    floor: '',
+    status: 'available',
+  });
+  const [editingPrice, setEditingPrice] = useState<PropertyPrice | null>(null);
 
   const queryClient = useQueryClient();
 
@@ -54,8 +89,23 @@ export default function PropertiesManagement() {
     },
   });
 
+  const { data: prices, refetch: refetchPrices } = useQuery({
+    queryKey: ['property-prices', selectedPropertyForPrices?.id],
+    queryFn: async () => {
+      if (!selectedPropertyForPrices) return [];
+      const { data, error } = await supabase
+        .from('property_prices')
+        .select('*')
+        .eq('property_id', selectedPropertyForPrices.id)
+        .order('price', { ascending: true });
+      if (error) throw error;
+      return data as PropertyPrice[];
+    },
+    enabled: !!selectedPropertyForPrices,
+  });
+
   const createMutation = useMutation({
-    mutationFn: async (data: { name: string; location: string; description?: string | null; ai_description?: string | null; images?: string[]; pdf_url?: string | null }) => {
+    mutationFn: async (data: { name: string; location: string; description?: string | null; ai_description?: string | null; images?: string[]; pdf_url?: string | null; pdf_cover_image?: string | null }) => {
       const { error } = await supabase.from('properties').insert([data]);
       if (error) throw error;
     },
@@ -98,12 +148,71 @@ export default function PropertiesManagement() {
     },
   });
 
+  const createPriceMutation = useMutation({
+    mutationFn: async (data: Omit<PropertyPrice, 'id'>) => {
+      const { error } = await supabase.from('property_prices').insert([data]);
+      if (error) throw error;
+    },
+    onSuccess: () => {
+      refetchPrices();
+      toast.success('Preço adicionado!');
+      resetPriceForm();
+    },
+    onError: (error) => {
+      toast.error('Erro ao adicionar preço', { description: error.message });
+    },
+  });
+
+  const updatePriceMutation = useMutation({
+    mutationFn: async ({ id, data }: { id: string; data: Partial<PropertyPrice> }) => {
+      const { error } = await supabase.from('property_prices').update(data).eq('id', id);
+      if (error) throw error;
+    },
+    onSuccess: () => {
+      refetchPrices();
+      toast.success('Preço atualizado!');
+      resetPriceForm();
+    },
+    onError: (error) => {
+      toast.error('Erro ao atualizar preço', { description: error.message });
+    },
+  });
+
+  const deletePriceMutation = useMutation({
+    mutationFn: async (id: string) => {
+      const { error } = await supabase.from('property_prices').delete().eq('id', id);
+      if (error) throw error;
+    },
+    onSuccess: () => {
+      refetchPrices();
+      toast.success('Preço removido!');
+    },
+    onError: (error) => {
+      toast.error('Erro ao remover preço', { description: error.message });
+    },
+  });
+
   const resetForm = () => {
-    setFormData({ name: '', location: '', description: '', ai_description: '' });
+    setFormData({ name: '', location: '', description: '', ai_description: '', floorPlanDetails: '' });
     setUploadedImages([]);
     setPdfUrl(null);
+    setPdfCoverImage(null);
     setEditingProperty(null);
     setIsDialogOpen(false);
+  };
+
+  const resetPriceForm = () => {
+    setPriceForm({
+      unit_type: '',
+      area_m2: '',
+      bedrooms: '',
+      suites: '',
+      parking_spots: '',
+      price: '',
+      floor: '',
+      status: 'available',
+    });
+    setEditingPrice(null);
   };
 
   const handleEdit = (property: Property) => {
@@ -113,10 +222,26 @@ export default function PropertiesManagement() {
       location: property.location,
       description: property.description || '',
       ai_description: property.ai_description || '',
+      floorPlanDetails: '',
     });
     setUploadedImages(property.images || []);
     setPdfUrl(property.pdf_url);
+    setPdfCoverImage(property.pdf_cover_image);
     setIsDialogOpen(true);
+  };
+
+  const handleEditPrice = (price: PropertyPrice) => {
+    setEditingPrice(price);
+    setPriceForm({
+      unit_type: price.unit_type,
+      area_m2: price.area_m2.toString(),
+      bedrooms: price.bedrooms?.toString() || '',
+      suites: price.suites?.toString() || '',
+      parking_spots: price.parking_spots?.toString() || '',
+      price: price.price.toString(),
+      floor: price.floor || '',
+      status: price.status || 'available',
+    });
   };
 
   const handleImageUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -141,6 +266,27 @@ export default function PropertiesManagement() {
     setUploadedImages(prev => [...prev, ...newImages]);
     setUploadingImages(false);
     toast.success(`${newImages.length} imagem(ns) enviada(s)!`);
+  };
+
+  const handleCoverImageUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    setUploadingCover(true);
+    const fileName = `cover-${Date.now()}-${file.name}`;
+
+    const { error } = await supabase.storage
+      .from('property-images')
+      .upload(fileName, file);
+
+    if (!error) {
+      const { data } = supabase.storage.from('property-images').getPublicUrl(fileName);
+      setPdfCoverImage(data.publicUrl);
+      toast.success('Imagem de capa enviada!');
+    } else {
+      toast.error('Erro ao enviar imagem de capa');
+    }
+    setUploadingCover(false);
   };
 
   const handlePdfUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -178,6 +324,7 @@ export default function PropertiesManagement() {
           name: formData.name,
           location: formData.location,
           description: formData.description,
+          floorPlanDetails: formData.floorPlanDetails,
           images: uploadedImages,
         },
       });
@@ -207,6 +354,7 @@ export default function PropertiesManagement() {
       ai_description: formData.ai_description || null,
       images: uploadedImages,
       pdf_url: pdfUrl,
+      pdf_cover_image: pdfCoverImage,
     };
 
     if (editingProperty) {
@@ -216,11 +364,46 @@ export default function PropertiesManagement() {
     }
   };
 
+  const handlePriceSubmit = () => {
+    if (!selectedPropertyForPrices || !priceForm.unit_type || !priceForm.area_m2 || !priceForm.price) {
+      toast.error('Preencha os campos obrigatórios');
+      return;
+    }
+
+    const priceData = {
+      property_id: selectedPropertyForPrices.id,
+      unit_type: priceForm.unit_type,
+      area_m2: parseFloat(priceForm.area_m2),
+      bedrooms: priceForm.bedrooms ? parseInt(priceForm.bedrooms) : null,
+      suites: priceForm.suites ? parseInt(priceForm.suites) : null,
+      parking_spots: priceForm.parking_spots ? parseInt(priceForm.parking_spots) : null,
+      price: parseFloat(priceForm.price),
+      floor: priceForm.floor || null,
+      status: priceForm.status,
+    };
+
+    if (editingPrice) {
+      updatePriceMutation.mutate({ id: editingPrice.id, data: priceData });
+    } else {
+      createPriceMutation.mutate(priceData);
+    }
+  };
+
   const toggleActive = async (property: Property) => {
     await updateMutation.mutateAsync({
       id: property.id,
       data: { is_active: !property.is_active },
     });
+  };
+
+  const formatCurrency = (value: number) => {
+    return new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(value);
+  };
+
+  const openPricesDialog = (property: Property) => {
+    setSelectedPropertyForPrices(property);
+    setPricesDialogOpen(true);
+    resetPriceForm();
   };
 
   return (
@@ -243,153 +426,409 @@ export default function PropertiesManagement() {
                 Novo Empreendimento
               </Button>
             </DialogTrigger>
-            <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
+            <DialogContent className="max-w-3xl max-h-[90vh] overflow-y-auto">
               <DialogHeader>
                 <DialogTitle className="font-display text-xl">
                   {editingProperty ? 'Editar Empreendimento' : 'Novo Empreendimento'}
                 </DialogTitle>
               </DialogHeader>
 
-              <div className="space-y-4 py-4">
-                <div className="grid grid-cols-2 gap-4">
+              <Tabs defaultValue="info" className="mt-4">
+                <TabsList className="grid w-full grid-cols-3">
+                  <TabsTrigger value="info">Informações</TabsTrigger>
+                  <TabsTrigger value="media">Mídia</TabsTrigger>
+                  <TabsTrigger value="ai">IA & Planta</TabsTrigger>
+                </TabsList>
+
+                <TabsContent value="info" className="space-y-4 py-4">
+                  <div className="grid grid-cols-2 gap-4">
+                    <div className="space-y-2">
+                      <Label>Nome do Empreendimento *</Label>
+                      <Input
+                        placeholder="Ex: Residencial Vista Mar"
+                        value={formData.name}
+                        onChange={(e) => setFormData(prev => ({ ...prev, name: e.target.value }))}
+                      />
+                    </div>
+                    <div className="space-y-2">
+                      <Label>Localização *</Label>
+                      <Input
+                        placeholder="Ex: Praia Grande, SP"
+                        value={formData.location}
+                        onChange={(e) => setFormData(prev => ({ ...prev, location: e.target.value }))}
+                      />
+                    </div>
+                  </div>
+
                   <div className="space-y-2">
-                    <Label>Nome do Empreendimento *</Label>
-                    <Input
-                      placeholder="Ex: Residencial Vista Mar"
-                      value={formData.name}
-                      onChange={(e) => setFormData(prev => ({ ...prev, name: e.target.value }))}
+                    <Label>Descrição Base</Label>
+                    <Textarea
+                      placeholder="Descrição básica do empreendimento (usado como base para IA)"
+                      rows={3}
+                      value={formData.description}
+                      onChange={(e) => setFormData(prev => ({ ...prev, description: e.target.value }))}
                     />
                   </div>
-                  <div className="space-y-2">
-                    <Label>Localização *</Label>
-                    <Input
-                      placeholder="Ex: Praia Grande, SP"
-                      value={formData.location}
-                      onChange={(e) => setFormData(prev => ({ ...prev, location: e.target.value }))}
-                    />
-                  </div>
-                </div>
+                </TabsContent>
 
-                <div className="space-y-2">
-                  <Label>Descrição Base</Label>
-                  <Textarea
-                    placeholder="Descrição básica do empreendimento (usado como base para IA)"
-                    rows={3}
-                    value={formData.description}
-                    onChange={(e) => setFormData(prev => ({ ...prev, description: e.target.value }))}
-                  />
-                </div>
-
-                <div className="space-y-2">
-                  <div className="flex items-center justify-between">
-                    <Label>Descrição Persuasiva (IA)</Label>
-                    <Button
-                      type="button"
-                      variant="outline"
-                      size="sm"
-                      onClick={generateAIDescription}
-                      disabled={generatingAI}
-                    >
-                      {generatingAI ? (
-                        <Loader2 className="w-4 h-4 mr-2 animate-spin" />
-                      ) : (
-                        <Sparkles className="w-4 h-4 mr-2" />
+                <TabsContent value="media" className="space-y-4 py-4">
+                  <div className="space-y-4">
+                    <div className="space-y-2">
+                      <Label>Imagens do Empreendimento</Label>
+                      <div className="relative">
+                        <input
+                          type="file"
+                          accept="image/*"
+                          multiple
+                          onChange={handleImageUpload}
+                          className="absolute inset-0 w-full h-full opacity-0 cursor-pointer"
+                          disabled={uploadingImages}
+                        />
+                        <div className="flex items-center justify-center gap-2 p-6 border-2 border-dashed rounded-lg hover:border-primary transition-colors">
+                          {uploadingImages ? (
+                            <Loader2 className="w-5 h-5 animate-spin" />
+                          ) : (
+                            <>
+                              <Image className="w-5 h-5 text-muted-foreground" />
+                              <span className="text-sm text-muted-foreground">
+                                Clique para enviar imagens
+                              </span>
+                            </>
+                          )}
+                        </div>
+                      </div>
+                      {uploadedImages.length > 0 && (
+                        <div className="flex flex-wrap gap-2 mt-2">
+                          {uploadedImages.map((img, i) => (
+                            <div key={i} className="relative group">
+                              <img src={img} alt="" className="w-20 h-20 object-cover rounded-lg" />
+                              <button
+                                type="button"
+                                className="absolute -top-2 -right-2 w-5 h-5 bg-destructive text-white rounded-full text-xs opacity-0 group-hover:opacity-100 transition-opacity"
+                                onClick={() => setUploadedImages(prev => prev.filter((_, idx) => idx !== i))}
+                              >
+                                ×
+                              </button>
+                            </div>
+                          ))}
+                        </div>
                       )}
-                      Gerar com IA
-                    </Button>
-                  </div>
-                  <Textarea
-                    placeholder="A descrição será gerada automaticamente pela IA..."
-                    rows={5}
-                    value={formData.ai_description}
-                    onChange={(e) => setFormData(prev => ({ ...prev, ai_description: e.target.value }))}
-                  />
-                </div>
-
-                <div className="grid grid-cols-2 gap-4">
-                  <div className="space-y-2">
-                    <Label>Imagens</Label>
-                    <div className="relative">
-                      <input
-                        type="file"
-                        accept="image/*"
-                        multiple
-                        onChange={handleImageUpload}
-                        className="absolute inset-0 w-full h-full opacity-0 cursor-pointer"
-                        disabled={uploadingImages}
-                      />
-                      <div className="flex items-center justify-center gap-2 p-4 border-2 border-dashed rounded-lg hover:border-primary transition-colors">
-                        {uploadingImages ? (
-                          <Loader2 className="w-5 h-5 animate-spin" />
-                        ) : (
-                          <>
-                            <Image className="w-5 h-5 text-muted-foreground" />
-                            <span className="text-sm text-muted-foreground">
-                              Clique para enviar imagens
-                            </span>
-                          </>
-                        )}
-                      </div>
                     </div>
-                    {uploadedImages.length > 0 && (
-                      <div className="flex flex-wrap gap-2 mt-2">
-                        {uploadedImages.map((img, i) => (
-                          <img key={i} src={img} alt="" className="w-16 h-16 object-cover rounded-lg" />
-                        ))}
-                      </div>
-                    )}
-                  </div>
 
-                  <div className="space-y-2">
-                    <Label>PDF do Material</Label>
-                    <div className="relative">
-                      <input
-                        type="file"
-                        accept=".pdf"
-                        onChange={handlePdfUpload}
-                        className="absolute inset-0 w-full h-full opacity-0 cursor-pointer"
-                        disabled={uploadingPdf}
-                      />
-                      <div className="flex items-center justify-center gap-2 p-4 border-2 border-dashed rounded-lg hover:border-primary transition-colors">
-                        {uploadingPdf ? (
-                          <Loader2 className="w-5 h-5 animate-spin" />
-                        ) : pdfUrl ? (
-                          <>
-                            <FileText className="w-5 h-5 text-success" />
-                            <span className="text-sm text-success">PDF enviado</span>
-                          </>
-                        ) : (
-                          <>
-                            <FileText className="w-5 h-5 text-muted-foreground" />
-                            <span className="text-sm text-muted-foreground">
-                              Enviar PDF
-                            </span>
-                          </>
-                        )}
+                    <div className="grid grid-cols-2 gap-4">
+                      <div className="space-y-2">
+                        <Label>PDF do Material</Label>
+                        <div className="relative">
+                          <input
+                            type="file"
+                            accept=".pdf"
+                            onChange={handlePdfUpload}
+                            className="absolute inset-0 w-full h-full opacity-0 cursor-pointer"
+                            disabled={uploadingPdf}
+                          />
+                          <div className="flex items-center justify-center gap-2 p-4 border-2 border-dashed rounded-lg hover:border-primary transition-colors">
+                            {uploadingPdf ? (
+                              <Loader2 className="w-5 h-5 animate-spin" />
+                            ) : pdfUrl ? (
+                              <>
+                                <FileText className="w-5 h-5 text-success" />
+                                <span className="text-sm text-success">PDF enviado</span>
+                              </>
+                            ) : (
+                              <>
+                                <FileText className="w-5 h-5 text-muted-foreground" />
+                                <span className="text-sm text-muted-foreground">
+                                  Enviar PDF
+                                </span>
+                              </>
+                            )}
+                          </div>
+                        </div>
+                      </div>
+
+                      <div className="space-y-2">
+                        <Label>Imagem de Capa do PDF</Label>
+                        <div className="relative">
+                          <input
+                            type="file"
+                            accept="image/*"
+                            onChange={handleCoverImageUpload}
+                            className="absolute inset-0 w-full h-full opacity-0 cursor-pointer"
+                            disabled={uploadingCover}
+                          />
+                          <div className="flex items-center justify-center gap-2 p-4 border-2 border-dashed rounded-lg hover:border-primary transition-colors">
+                            {uploadingCover ? (
+                              <Loader2 className="w-5 h-5 animate-spin" />
+                            ) : pdfCoverImage ? (
+                              <img src={pdfCoverImage} alt="Capa" className="w-full h-20 object-cover rounded" />
+                            ) : (
+                              <>
+                                <Image className="w-5 h-5 text-muted-foreground" />
+                                <span className="text-sm text-muted-foreground">
+                                  Capa do PDF
+                                </span>
+                              </>
+                            )}
+                          </div>
+                        </div>
+                        <p className="text-xs text-muted-foreground">
+                          Esta imagem será exibida como miniatura do PDF para clientes
+                        </p>
                       </div>
                     </div>
                   </div>
-                </div>
+                </TabsContent>
 
-                <div className="flex justify-end gap-3 pt-4">
-                  <Button variant="outline" onClick={resetForm}>
-                    Cancelar
-                  </Button>
-                  <Button
-                    variant="gold"
-                    onClick={handleSubmit}
-                    disabled={createMutation.isPending || updateMutation.isPending}
-                  >
-                    {(createMutation.isPending || updateMutation.isPending) && (
-                      <Loader2 className="w-4 h-4 mr-2 animate-spin" />
-                    )}
-                    {editingProperty ? 'Salvar Alterações' : 'Criar Empreendimento'}
-                  </Button>
-                </div>
+                <TabsContent value="ai" className="space-y-4 py-4">
+                  <div className="space-y-2">
+                    <Label>Detalhes da Planta/Metragem</Label>
+                    <Textarea
+                      placeholder="Ex: Apartamentos de 65m² a 120m², 2 a 3 suítes, 2 vagas, varanda gourmet..."
+                      rows={3}
+                      value={formData.floorPlanDetails}
+                      onChange={(e) => setFormData(prev => ({ ...prev, floorPlanDetails: e.target.value }))}
+                    />
+                    <p className="text-xs text-muted-foreground">
+                      Estas informações serão usadas pela IA para gerar uma descrição mais completa
+                    </p>
+                  </div>
+
+                  <div className="space-y-2">
+                    <div className="flex items-center justify-between">
+                      <Label>Descrição Persuasiva (IA)</Label>
+                      <Button
+                        type="button"
+                        variant="outline"
+                        size="sm"
+                        onClick={generateAIDescription}
+                        disabled={generatingAI}
+                      >
+                        {generatingAI ? (
+                          <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                        ) : (
+                          <Sparkles className="w-4 h-4 mr-2" />
+                        )}
+                        Gerar com IA
+                      </Button>
+                    </div>
+                    <Textarea
+                      placeholder="A descrição será gerada automaticamente pela IA..."
+                      rows={6}
+                      value={formData.ai_description}
+                      onChange={(e) => setFormData(prev => ({ ...prev, ai_description: e.target.value }))}
+                    />
+                  </div>
+                </TabsContent>
+              </Tabs>
+
+              <div className="flex justify-end gap-3 pt-4 border-t">
+                <Button variant="outline" onClick={resetForm}>
+                  Cancelar
+                </Button>
+                <Button
+                  variant="gold"
+                  onClick={handleSubmit}
+                  disabled={createMutation.isPending || updateMutation.isPending}
+                >
+                  {(createMutation.isPending || updateMutation.isPending) && (
+                    <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                  )}
+                  {editingProperty ? 'Salvar Alterações' : 'Criar Empreendimento'}
+                </Button>
               </div>
             </DialogContent>
           </Dialog>
         </div>
+
+        {/* Dialog de Preços */}
+        <Dialog open={pricesDialogOpen} onOpenChange={setPricesDialogOpen}>
+          <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto">
+            <DialogHeader>
+              <DialogTitle className="font-display text-xl flex items-center gap-2">
+                <DollarSign className="w-5 h-5 text-primary" />
+                Tabela de Preços - {selectedPropertyForPrices?.name}
+              </DialogTitle>
+            </DialogHeader>
+
+            <div className="space-y-6 py-4">
+              {/* Formulário de adição/edição */}
+              <Card>
+                <CardHeader className="pb-3">
+                  <CardTitle className="text-sm font-medium">
+                    {editingPrice ? 'Editar Unidade' : 'Adicionar Nova Unidade'}
+                  </CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <div className="grid grid-cols-4 gap-3">
+                    <div className="space-y-1">
+                      <Label className="text-xs">Tipo de Unidade *</Label>
+                      <Input
+                        placeholder="Ex: Apto 101"
+                        value={priceForm.unit_type}
+                        onChange={(e) => setPriceForm(prev => ({ ...prev, unit_type: e.target.value }))}
+                      />
+                    </div>
+                    <div className="space-y-1">
+                      <Label className="text-xs">Área (m²) *</Label>
+                      <Input
+                        type="number"
+                        placeholder="65"
+                        value={priceForm.area_m2}
+                        onChange={(e) => setPriceForm(prev => ({ ...prev, area_m2: e.target.value }))}
+                      />
+                    </div>
+                    <div className="space-y-1">
+                      <Label className="text-xs">Quartos</Label>
+                      <Input
+                        type="number"
+                        placeholder="2"
+                        value={priceForm.bedrooms}
+                        onChange={(e) => setPriceForm(prev => ({ ...prev, bedrooms: e.target.value }))}
+                      />
+                    </div>
+                    <div className="space-y-1">
+                      <Label className="text-xs">Suítes</Label>
+                      <Input
+                        type="number"
+                        placeholder="1"
+                        value={priceForm.suites}
+                        onChange={(e) => setPriceForm(prev => ({ ...prev, suites: e.target.value }))}
+                      />
+                    </div>
+                    <div className="space-y-1">
+                      <Label className="text-xs">Vagas</Label>
+                      <Input
+                        type="number"
+                        placeholder="2"
+                        value={priceForm.parking_spots}
+                        onChange={(e) => setPriceForm(prev => ({ ...prev, parking_spots: e.target.value }))}
+                      />
+                    </div>
+                    <div className="space-y-1">
+                      <Label className="text-xs">Andar</Label>
+                      <Input
+                        placeholder="10º"
+                        value={priceForm.floor}
+                        onChange={(e) => setPriceForm(prev => ({ ...prev, floor: e.target.value }))}
+                      />
+                    </div>
+                    <div className="space-y-1">
+                      <Label className="text-xs">Preço (R$) *</Label>
+                      <Input
+                        type="number"
+                        placeholder="450000"
+                        value={priceForm.price}
+                        onChange={(e) => setPriceForm(prev => ({ ...prev, price: e.target.value }))}
+                      />
+                    </div>
+                    <div className="space-y-1">
+                      <Label className="text-xs">Status</Label>
+                      <Select
+                        value={priceForm.status}
+                        onValueChange={(value) => setPriceForm(prev => ({ ...prev, status: value }))}
+                      >
+                        <SelectTrigger>
+                          <SelectValue />
+                        </SelectTrigger>
+                        <SelectContent>
+                          <SelectItem value="available">Disponível</SelectItem>
+                          <SelectItem value="reserved">Reservado</SelectItem>
+                          <SelectItem value="sold">Vendido</SelectItem>
+                        </SelectContent>
+                      </Select>
+                    </div>
+                  </div>
+                  <div className="flex justify-end gap-2 mt-4">
+                    {editingPrice && (
+                      <Button variant="outline" size="sm" onClick={resetPriceForm}>
+                        Cancelar
+                      </Button>
+                    )}
+                    <Button
+                      variant="gold"
+                      size="sm"
+                      onClick={handlePriceSubmit}
+                      disabled={createPriceMutation.isPending || updatePriceMutation.isPending}
+                    >
+                      {(createPriceMutation.isPending || updatePriceMutation.isPending) && (
+                        <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                      )}
+                      {editingPrice ? 'Atualizar' : 'Adicionar'}
+                    </Button>
+                  </div>
+                </CardContent>
+              </Card>
+
+              {/* Tabela de preços */}
+              <div className="rounded-lg border overflow-hidden">
+                <Table>
+                  <TableHeader>
+                    <TableRow>
+                      <TableHead>Unidade</TableHead>
+                      <TableHead>Área</TableHead>
+                      <TableHead>Quartos</TableHead>
+                      <TableHead>Suítes</TableHead>
+                      <TableHead>Vagas</TableHead>
+                      <TableHead>Andar</TableHead>
+                      <TableHead>Preço</TableHead>
+                      <TableHead>Status</TableHead>
+                      <TableHead className="w-24">Ações</TableHead>
+                    </TableRow>
+                  </TableHeader>
+                  <TableBody>
+                    {prices?.length === 0 ? (
+                      <TableRow>
+                        <TableCell colSpan={9} className="text-center py-8 text-muted-foreground">
+                          Nenhum preço cadastrado
+                        </TableCell>
+                      </TableRow>
+                    ) : (
+                      prices?.map((price) => (
+                        <TableRow key={price.id}>
+                          <TableCell className="font-medium">{price.unit_type}</TableCell>
+                          <TableCell>{price.area_m2}m²</TableCell>
+                          <TableCell>{price.bedrooms || '-'}</TableCell>
+                          <TableCell>{price.suites || '-'}</TableCell>
+                          <TableCell>{price.parking_spots || '-'}</TableCell>
+                          <TableCell>{price.floor || '-'}</TableCell>
+                          <TableCell className="font-semibold text-primary">
+                            {formatCurrency(price.price)}
+                          </TableCell>
+                          <TableCell>
+                            <Badge
+                              variant={price.status === 'available' ? 'default' : price.status === 'reserved' ? 'secondary' : 'destructive'}
+                            >
+                              {price.status === 'available' ? 'Disponível' : price.status === 'reserved' ? 'Reservado' : 'Vendido'}
+                            </Badge>
+                          </TableCell>
+                          <TableCell>
+                            <div className="flex items-center gap-1">
+                              <Button variant="ghost" size="icon" className="h-7 w-7" onClick={() => handleEditPrice(price)}>
+                                <Pencil className="w-3.5 h-3.5" />
+                              </Button>
+                              <Button
+                                variant="ghost"
+                                size="icon"
+                                className="h-7 w-7 text-destructive hover:text-destructive"
+                                onClick={() => {
+                                  if (confirm('Remover este preço?')) {
+                                    deletePriceMutation.mutate(price.id);
+                                  }
+                                }}
+                              >
+                                <Trash2 className="w-3.5 h-3.5" />
+                              </Button>
+                            </div>
+                          </TableCell>
+                        </TableRow>
+                      ))
+                    )}
+                  </TableBody>
+                </Table>
+              </div>
+            </div>
+          </DialogContent>
+        </Dialog>
 
         {isLoading ? (
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
@@ -451,6 +890,15 @@ export default function PropertiesManagement() {
                       </span>
                     </div>
                     <div className="flex items-center gap-1">
+                      <Button
+                        variant="ghost"
+                        size="icon"
+                        className="h-8 w-8"
+                        onClick={() => openPricesDialog(property)}
+                        title="Tabela de Preços"
+                      >
+                        <DollarSign className="w-4 h-4" />
+                      </Button>
                       <Button
                         variant="ghost"
                         size="icon"
