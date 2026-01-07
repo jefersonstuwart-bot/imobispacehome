@@ -1,4 +1,5 @@
-import { Home, Mail, Phone, MapPin, Crown } from 'lucide-react';
+import { Mail, Phone, MapPin, Crown } from 'lucide-react';
+import logo from '@/assets/logo-imobispace.png';
 
 export function Footer() {
   return (
@@ -6,13 +7,13 @@ export function Footer() {
       <div className="container py-16">
         <div className="grid grid-cols-1 md:grid-cols-3 gap-12">
           <div className="space-y-6">
-            <div className="flex items-center gap-3">
-              <div className="w-12 h-12 rounded-xl bg-primary/20 flex items-center justify-center">
-                <Home className="w-6 h-6 text-primary" />
-              </div>
-              <div>
-                <span className="font-display text-2xl font-semibold">ImobiSpace</span>
-                <span className="block text-[10px] uppercase tracking-[0.3em] text-white/50">Home</span>
+            <div className="flex items-center gap-4">
+              <div className="bg-black rounded-xl p-3 shadow-lg border border-white/10">
+                <img 
+                  src={logo} 
+                  alt="ImobiSpace Home" 
+                  className="h-10 w-auto"
+                />
               </div>
             </div>
             <p className="text-sm text-white/60 max-w-xs leading-relaxed font-light">

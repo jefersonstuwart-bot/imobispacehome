@@ -17,11 +17,13 @@ export function Header() {
     <header className="fixed top-0 left-0 right-0 z-50 glass border-b border-border/30">
       <div className="container flex h-20 items-center justify-between">
         <Link to="/" className="flex items-center gap-3 group">
-          <img 
-            src={logo} 
-            alt="ImobiSpace Home" 
-            className="h-14 w-auto group-hover:scale-105 transition-transform duration-500"
-          />
+          <div className="bg-secondary rounded-xl p-2 shadow-lg group-hover:shadow-gold transition-shadow duration-500">
+            <img 
+              src={logo} 
+              alt="ImobiSpace Home" 
+              className="h-10 w-auto group-hover:scale-105 transition-transform duration-500"
+            />
+          </div>
         </Link>
 
         <nav className="flex items-center gap-6">
