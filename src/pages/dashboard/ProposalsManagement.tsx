@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { DashboardLayout } from '@/components/dashboard/DashboardLayout';
 import { Button } from '@/components/ui/button';
@@ -10,6 +10,7 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
+import { useProposalNotifications } from '@/hooks/useProposalNotifications';
 import { 
   Eye, 
   Download, 
@@ -24,7 +25,8 @@ import {
   Clock,
   CheckCircle,
   XCircle,
-  Users
+  Users,
+  Bell
 } from 'lucide-react';
 import { PROPOSAL_STATUS_LABELS, PROPOSAL_TYPE_LABELS, MARITAL_STATUS_LABELS } from '@/lib/constants';
 
@@ -69,7 +71,7 @@ export default function ProposalsManagement() {
 
   const queryClient = useQueryClient();
 
-  const { data: proposals, isLoading } = useQuery({
+  const { data: proposals, isLoading, refetch } = useQuery({
     queryKey: ['admin-proposals'],
     queryFn: async () => {
       const { data, error } = await supabase
@@ -82,6 +84,14 @@ export default function ProposalsManagement() {
         .order('created_at', { ascending: false });
       if (error) throw error;
       return data as Proposal[];
+    },
+  });
+
+  // Use notification hook for realtime updates
+  useProposalNotifications({
+    onProposalAccepted: () => {
+      refetch();
+      queryClient.invalidateQueries({ queryKey: ['admin-proposals'] });
     },
   });
 
