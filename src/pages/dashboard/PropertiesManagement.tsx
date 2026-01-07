@@ -27,6 +27,8 @@ interface Property {
   pdf_url: string | null;
   pdf_cover_image: string | null;
   is_active: boolean;
+  is_mcmv: boolean;
+  mcmv_logo_url: string | null;
   created_at: string;
 }
 
@@ -58,6 +60,9 @@ export default function PropertiesManagement() {
   const [pdfUrl, setPdfUrl] = useState<string | null>(null);
   const [pdfCoverImage, setPdfCoverImage] = useState<string | null>(null);
   const [uploadingCover, setUploadingCover] = useState(false);
+  const [isMcmv, setIsMcmv] = useState(false);
+  const [mcmvLogoUrl, setMcmvLogoUrl] = useState<string | null>(null);
+  const [uploadingMcmvLogo, setUploadingMcmvLogo] = useState(false);
   const [generatingAI, setGeneratingAI] = useState(false);
   
   // Preços
@@ -197,6 +202,8 @@ export default function PropertiesManagement() {
     setUploadedImages([]);
     setPdfUrl(null);
     setPdfCoverImage(null);
+    setIsMcmv(false);
+    setMcmvLogoUrl(null);
     setEditingProperty(null);
     setIsDialogOpen(false);
   };
@@ -226,6 +233,8 @@ export default function PropertiesManagement() {
     setUploadedImages(property.images || []);
     setPdfUrl(property.pdf_url);
     setPdfCoverImage(property.pdf_cover_image);
+    setIsMcmv(property.is_mcmv || false);
+    setMcmvLogoUrl(property.mcmv_logo_url);
     setIsDialogOpen(true);
   };
 
@@ -286,6 +295,27 @@ export default function PropertiesManagement() {
       toast.error('Erro ao enviar imagem de capa');
     }
     setUploadingCover(false);
+  };
+
+  const handleMcmvLogoUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    setUploadingMcmvLogo(true);
+    const fileName = `mcmv-${Date.now()}-${file.name}`;
+
+    const { error } = await supabase.storage
+      .from('property-images')
+      .upload(fileName, file);
+
+    if (!error) {
+      const { data } = supabase.storage.from('property-images').getPublicUrl(fileName);
+      setMcmvLogoUrl(data.publicUrl);
+      toast.success('Logo Minha Casa Minha Vida enviada!');
+    } else {
+      toast.error('Erro ao enviar logo');
+    }
+    setUploadingMcmvLogo(false);
   };
 
   const handlePdfUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -372,6 +402,8 @@ export default function PropertiesManagement() {
       images: uploadedImages,
       pdf_url: pdfUrl,
       pdf_cover_image: pdfCoverImage,
+      is_mcmv: isMcmv,
+      mcmv_logo_url: isMcmv ? mcmvLogoUrl : null,
     };
 
     if (editingProperty) {
@@ -592,6 +624,67 @@ export default function PropertiesManagement() {
                           Esta imagem será exibida como miniatura do PDF para clientes
                         </p>
                       </div>
+                    </div>
+
+                    {/* Minha Casa Minha Vida */}
+                    <div className="p-4 rounded-lg border border-border bg-muted/30 space-y-4">
+                      <div className="flex items-center justify-between">
+                        <div>
+                          <Label className="text-base font-semibold">Minha Casa Minha Vida</Label>
+                          <p className="text-xs text-muted-foreground">
+                            Marque se este empreendimento faz parte do programa
+                          </p>
+                        </div>
+                        <Switch
+                          checked={isMcmv}
+                          onCheckedChange={setIsMcmv}
+                        />
+                      </div>
+
+                      {isMcmv && (
+                        <div className="space-y-2">
+                          <Label>Logo do Programa</Label>
+                          <div className="flex items-center gap-4">
+                            {mcmvLogoUrl ? (
+                              <div className="relative group">
+                                <img 
+                                  src={mcmvLogoUrl} 
+                                  alt="Logo MCMV" 
+                                  className="h-16 w-auto object-contain bg-white rounded-lg p-2 border"
+                                />
+                                <button
+                                  type="button"
+                                  className="absolute -top-2 -right-2 w-5 h-5 bg-destructive text-white rounded-full text-xs opacity-0 group-hover:opacity-100 transition-opacity"
+                                  onClick={() => setMcmvLogoUrl(null)}
+                                >
+                                  ×
+                                </button>
+                              </div>
+                            ) : (
+                              <div className="relative">
+                                <input
+                                  type="file"
+                                  accept="image/*"
+                                  onChange={handleMcmvLogoUpload}
+                                  className="absolute inset-0 w-full h-full opacity-0 cursor-pointer"
+                                  disabled={uploadingMcmvLogo}
+                                />
+                                <Button variant="outline" size="sm" disabled={uploadingMcmvLogo}>
+                                  {uploadingMcmvLogo ? (
+                                    <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                                  ) : (
+                                    <Image className="w-4 h-4 mr-2" />
+                                  )}
+                                  Enviar Logo MCMV
+                                </Button>
+                              </div>
+                            )}
+                          </div>
+                          <p className="text-xs text-muted-foreground">
+                            Esta logo será exibida ao lado do empreendimento para os clientes
+                          </p>
+                        </div>
+                      )}
                     </div>
                   </div>
                 </TabsContent>

@@ -165,7 +165,9 @@ export type Database = {
           id: string
           images: string[] | null
           is_active: boolean | null
+          is_mcmv: boolean | null
           location: string
+          mcmv_logo_url: string | null
           name: string
           pdf_cover_image: string | null
           pdf_url: string | null
@@ -179,7 +181,9 @@ export type Database = {
           id?: string
           images?: string[] | null
           is_active?: boolean | null
+          is_mcmv?: boolean | null
           location: string
+          mcmv_logo_url?: string | null
           name: string
           pdf_cover_image?: string | null
           pdf_url?: string | null
@@ -193,7 +197,9 @@ export type Database = {
           id?: string
           images?: string[] | null
           is_active?: boolean | null
+          is_mcmv?: boolean | null
           location?: string
+          mcmv_logo_url?: string | null
           name?: string
           pdf_cover_image?: string | null
           pdf_url?: string | null
