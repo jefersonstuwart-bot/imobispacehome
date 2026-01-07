@@ -10,6 +10,10 @@ import Auth from "./pages/Auth";
 import PropertyDetail from "./pages/PropertyDetail";
 import ProposalForm from "./pages/ProposalForm";
 import ProposalSuccess from "./pages/ProposalSuccess";
+import DashboardOverview from "./pages/dashboard/DashboardOverview";
+import PropertiesManagement from "./pages/dashboard/PropertiesManagement";
+import BrokersManagement from "./pages/dashboard/BrokersManagement";
+import ProposalsManagement from "./pages/dashboard/ProposalsManagement";
 
 const queryClient = new QueryClient();
 
@@ -26,6 +30,13 @@ const App = () => (
             <Route path="/empreendimento/:id" element={<PropertyDetail />} />
             <Route path="/proposta/:propertyId" element={<ProposalForm />} />
             <Route path="/proposta-enviada" element={<ProposalSuccess />} />
+            
+            {/* Dashboard Routes */}
+            <Route path="/dashboard" element={<DashboardOverview />} />
+            <Route path="/dashboard/empreendimentos" element={<PropertiesManagement />} />
+            <Route path="/dashboard/corretores" element={<BrokersManagement />} />
+            <Route path="/dashboard/propostas" element={<ProposalsManagement />} />
+            
             {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
             <Route path="*" element={<NotFound />} />
           </Routes>
