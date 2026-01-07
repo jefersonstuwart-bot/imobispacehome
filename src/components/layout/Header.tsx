@@ -1,7 +1,8 @@
 import { Link, useNavigate } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
-import { Home, LogIn, LogOut, LayoutDashboard, User, Crown } from 'lucide-react';
+import { LogIn, LogOut, LayoutDashboard, User, Crown } from 'lucide-react';
 import { useAuth } from '@/hooks/useAuth';
+import logo from '@/assets/logo-imobispace.png';
 
 export function Header() {
   const { user, profile, signOut, isAdmin, isBroker } = useAuth();
@@ -16,17 +17,11 @@ export function Header() {
     <header className="fixed top-0 left-0 right-0 z-50 glass border-b border-border/30">
       <div className="container flex h-20 items-center justify-between">
         <Link to="/" className="flex items-center gap-3 group">
-          <div className="w-12 h-12 rounded-xl bg-gradient-gold flex items-center justify-center shadow-gold group-hover:scale-105 transition-transform duration-500">
-            <Home className="w-6 h-6 text-white" />
-          </div>
-          <div className="flex flex-col">
-            <span className="font-display text-2xl font-semibold text-foreground tracking-tight">
-              ImobiSpace
-            </span>
-            <span className="text-[10px] uppercase tracking-[0.3em] text-muted-foreground -mt-0.5">
-              Home
-            </span>
-          </div>
+          <img 
+            src={logo} 
+            alt="ImobiSpace Home" 
+            className="h-14 w-auto group-hover:scale-105 transition-transform duration-500"
+          />
         </Link>
 
         <nav className="flex items-center gap-6">
@@ -71,7 +66,7 @@ export function Header() {
             <Link to="/auth">
               <Button variant="gold" size="sm" className="tracking-wide">
                 <LogIn className="w-4 h-4 mr-2" />
-                Acessar
+                Área do Corretor
               </Button>
             </Link>
           )}

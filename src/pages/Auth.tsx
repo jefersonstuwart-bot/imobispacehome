@@ -11,7 +11,8 @@ import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from '
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { useAuth } from '@/hooks/useAuth';
 import { toast } from 'sonner';
-import { LogIn, UserPlus, Loader2, Shield, Users } from 'lucide-react';
+import { LogIn, UserPlus, Loader2, Users } from 'lucide-react';
+import logo from '@/assets/logo-imobispace.png';
 
 const loginSchema = z.object({
   email: z.string().email('E-mail inválido'),
@@ -33,7 +34,6 @@ type SignupFormData = z.infer<typeof signupSchema>;
 
 export default function Auth() {
   const [activeTab, setActiveTab] = useState('login');
-  const [selectedRole, setSelectedRole] = useState<'gestor' | 'corretor' | null>(null);
   const [isLoading, setIsLoading] = useState(false);
   const { signIn, signUp, user } = useAuth();
   const navigate = useNavigate();
@@ -88,105 +88,22 @@ export default function Auth() {
     }
   };
 
-  // Role Selection Screen
-  if (!selectedRole) {
-    return (
-      <Layout showFooter={false}>
-        <div className="min-h-[calc(100vh-4rem)] flex items-center justify-center px-4 py-12 bg-gradient-to-b from-background to-muted">
-          <div className="w-full max-w-2xl">
-            <div className="text-center mb-8">
-              <h1 className="font-display text-3xl md:text-4xl font-bold text-foreground mb-2">
-                Área Restrita
-              </h1>
-              <p className="text-muted-foreground">
-                Selecione o tipo de acesso para continuar
-              </p>
-            </div>
-
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-              {/* Gestor Card */}
-              <button
-                onClick={() => setSelectedRole('gestor')}
-                className="group relative overflow-hidden rounded-2xl border-2 border-border bg-card p-8 text-left transition-all duration-300 hover:border-secondary hover:shadow-[0_0_30px_rgba(212,175,55,0.2)]"
-              >
-                <div className="absolute inset-0 bg-gradient-to-br from-secondary/5 to-transparent opacity-0 group-hover:opacity-100 transition-opacity" />
-                <div className="relative z-10">
-                  <div className="w-16 h-16 rounded-2xl bg-gradient-to-br from-secondary to-secondary/70 flex items-center justify-center mb-6 shadow-lg group-hover:scale-110 transition-transform">
-                    <Shield className="w-8 h-8 text-secondary-foreground" />
-                  </div>
-                  <h3 className="font-display text-2xl font-bold text-foreground mb-2">
-                    Gestor
-                  </h3>
-                  <p className="text-muted-foreground text-sm leading-relaxed">
-                    Acesso completo ao painel administrativo. Gerencie empreendimentos, corretores e propostas.
-                  </p>
-                  <div className="mt-6 flex items-center gap-2 text-secondary font-semibold">
-                    <span>Acessar</span>
-                    <span className="group-hover:translate-x-1 transition-transform">→</span>
-                  </div>
-                </div>
-              </button>
-
-              {/* Corretor Card */}
-              <button
-                onClick={() => setSelectedRole('corretor')}
-                className="group relative overflow-hidden rounded-2xl border-2 border-border bg-card p-8 text-left transition-all duration-300 hover:border-primary hover:shadow-[0_0_30px_rgba(124,58,237,0.2)]"
-              >
-                <div className="absolute inset-0 bg-gradient-to-br from-primary/5 to-transparent opacity-0 group-hover:opacity-100 transition-opacity" />
-                <div className="relative z-10">
-                  <div className="w-16 h-16 rounded-2xl bg-gradient-to-br from-primary to-primary/70 flex items-center justify-center mb-6 shadow-lg group-hover:scale-110 transition-transform">
-                    <Users className="w-8 h-8 text-primary-foreground" />
-                  </div>
-                  <h3 className="font-display text-2xl font-bold text-foreground mb-2">
-                    Corretor
-                  </h3>
-                  <p className="text-muted-foreground text-sm leading-relaxed">
-                    Gerencie suas propostas, mantenha-se online e acompanhe seus atendimentos.
-                  </p>
-                  <div className="mt-6 flex items-center gap-2 text-primary font-semibold">
-                    <span>Acessar</span>
-                    <span className="group-hover:translate-x-1 transition-transform">→</span>
-                  </div>
-                </div>
-              </button>
-            </div>
-          </div>
-        </div>
-      </Layout>
-    );
-  }
-
-  // Login/Signup Form
   return (
     <Layout showFooter={false}>
       <div className="min-h-[calc(100vh-4rem)] flex items-center justify-center px-4 py-12 bg-gradient-to-b from-background to-muted">
-        <Card className="w-full max-w-md shadow-elegant-lg border-0">
+        <Card className="w-full max-w-md shadow-luxury border-0">
           <CardHeader className="text-center pb-2">
-            <button
-              onClick={() => setSelectedRole(null)}
-              className="text-sm text-muted-foreground hover:text-foreground mb-4 inline-flex items-center gap-1"
-            >
-              ← Voltar
-            </button>
-            <div className={`w-14 h-14 rounded-2xl mx-auto mb-4 flex items-center justify-center shadow-lg ${
-              selectedRole === 'gestor' 
-                ? 'bg-gradient-to-br from-secondary to-secondary/70' 
-                : 'bg-gradient-to-br from-primary to-primary/70'
-            }`}>
-              {selectedRole === 'gestor' ? (
-                <Shield className="w-7 h-7 text-secondary-foreground" />
-              ) : (
-                <Users className="w-7 h-7 text-primary-foreground" />
-              )}
+            <div className="mx-auto mb-4">
+              <img src={logo} alt="ImobiSpace Home" className="h-20 w-auto mx-auto" />
+            </div>
+            <div className="w-14 h-14 rounded-2xl mx-auto mb-4 flex items-center justify-center shadow-lg bg-gradient-to-br from-primary to-primary/70">
+              <Users className="w-7 h-7 text-primary-foreground" />
             </div>
             <CardTitle className="font-display text-2xl">
-              {selectedRole === 'gestor' ? 'Área do Gestor' : 'Área do Corretor'}
+              Área do Corretor
             </CardTitle>
             <CardDescription>
-              {selectedRole === 'gestor' 
-                ? 'Acesso ao painel administrativo'
-                : 'Gerencie suas propostas e atendimentos'
-              }
+              Gerencie suas propostas e atendimentos
             </CardDescription>
           </CardHeader>
           <CardContent>
@@ -236,7 +153,7 @@ export default function Auth() {
                     <Button 
                       type="submit" 
                       className="w-full" 
-                      variant={selectedRole === 'gestor' ? 'gold' : 'default'}
+                      variant="gold"
                       disabled={isLoading}
                     >
                       {isLoading ? (
@@ -320,7 +237,7 @@ export default function Auth() {
                     <Button 
                       type="submit" 
                       className="w-full" 
-                      variant={selectedRole === 'gestor' ? 'gold' : 'default'}
+                      variant="gold"
                       disabled={isLoading}
                     >
                       {isLoading ? (

@@ -2,114 +2,114 @@
 @tailwind components;
 @tailwind utilities;
 
-@import url('https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@400;500;600;700&family=Montserrat:wght@300;400;500;600;700&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&family=Playfair+Display:wght@400;500;600;700&display=swap');
 
 @layer base {
   :root {
-    /* Paleta Alto Luxo - Elegância Sofisticada */
-    --background: 30 15% 97%;
-    --foreground: 30 10% 12%;
+    /* Paleta Imobiliária - Dourado e Preto Sofisticado */
+    --background: 45 10% 98%;
+    --foreground: 0 0% 10%;
 
     --card: 0 0% 100%;
-    --card-foreground: 30 10% 12%;
+    --card-foreground: 0 0% 10%;
 
     --popover: 0 0% 100%;
-    --popover-foreground: 30 10% 12%;
+    --popover-foreground: 0 0% 10%;
 
-    /* Dourado Luxuoso */
-    --primary: 38 75% 45%;
-    --primary-foreground: 0 0% 100%;
+    /* Dourado Principal */
+    --primary: 45 90% 50%;
+    --primary-foreground: 0 0% 10%;
 
-    /* Azul Marinho Profundo */
-    --secondary: 220 40% 18%;
+    /* Preto Elegante */
+    --secondary: 0 0% 12%;
     --secondary-foreground: 0 0% 100%;
 
-    --muted: 30 15% 94%;
-    --muted-foreground: 30 10% 40%;
+    --muted: 45 10% 94%;
+    --muted-foreground: 0 0% 40%;
 
     /* Accent Dourado */
-    --accent: 38 75% 45%;
-    --accent-foreground: 0 0% 100%;
+    --accent: 45 90% 50%;
+    --accent-foreground: 0 0% 10%;
 
     --destructive: 0 72% 51%;
     --destructive-foreground: 0 0% 100%;
 
-    /* Sucesso Esmeralda */
-    --success: 160 60% 35%;
+    /* Sucesso Verde */
+    --success: 142 70% 40%;
     --success-foreground: 0 0% 100%;
 
-    --border: 30 15% 88%;
-    --input: 30 15% 88%;
-    --ring: 38 75% 45%;
+    --border: 45 10% 88%;
+    --input: 45 10% 88%;
+    --ring: 45 90% 50%;
 
     --radius: 0.5rem;
 
-    /* Gradientes Luxuosos */
-    --gradient-gold: linear-gradient(135deg, hsl(38 75% 50%) 0%, hsl(45 80% 55%) 50%, hsl(38 75% 45%) 100%);
-    --gradient-hero: linear-gradient(135deg, hsl(220 40% 12%) 0%, hsl(220 35% 20%) 50%, hsl(38 75% 45% / 0.15) 100%);
-    --gradient-card: linear-gradient(180deg, hsl(0 0% 100%) 0%, hsl(30 15% 98%) 100%);
-    --gradient-dark: linear-gradient(180deg, hsl(220 40% 12%) 0%, hsl(220 35% 8%) 100%);
+    /* Gradientes Imobiliária */
+    --gradient-gold: linear-gradient(135deg, hsl(45 90% 55%) 0%, hsl(42 85% 50%) 50%, hsl(45 90% 45%) 100%);
+    --gradient-hero: linear-gradient(135deg, hsl(0 0% 8%) 0%, hsl(0 0% 15%) 50%, hsl(45 90% 50% / 0.15) 100%);
+    --gradient-card: linear-gradient(180deg, hsl(0 0% 100%) 0%, hsl(45 10% 98%) 100%);
+    --gradient-dark: linear-gradient(180deg, hsl(0 0% 12%) 0%, hsl(0 0% 6%) 100%);
 
     /* Sombras Premium */
-    --shadow-sm: 0 2px 8px -2px hsl(30 10% 12% / 0.06);
-    --shadow-md: 0 8px 30px -8px hsl(30 10% 12% / 0.1);
-    --shadow-lg: 0 20px 50px -15px hsl(30 10% 12% / 0.15);
-    --shadow-gold: 0 8px 40px -8px hsl(38 75% 45% / 0.3);
-    --shadow-luxury: 0 25px 60px -20px hsl(220 40% 12% / 0.25);
+    --shadow-sm: 0 2px 8px -2px hsl(0 0% 10% / 0.08);
+    --shadow-md: 0 8px 30px -8px hsl(0 0% 10% / 0.12);
+    --shadow-lg: 0 20px 50px -15px hsl(0 0% 10% / 0.18);
+    --shadow-gold: 0 8px 40px -8px hsl(45 90% 50% / 0.35);
+    --shadow-luxury: 0 25px 60px -20px hsl(0 0% 10% / 0.3);
 
     --sidebar-background: 0 0% 98%;
-    --sidebar-foreground: 240 5.3% 26.1%;
-    --sidebar-primary: 240 5.9% 10%;
+    --sidebar-foreground: 0 0% 26%;
+    --sidebar-primary: 0 0% 10%;
     --sidebar-primary-foreground: 0 0% 98%;
-    --sidebar-accent: 240 4.8% 95.9%;
-    --sidebar-accent-foreground: 240 5.9% 10%;
-    --sidebar-border: 220 13% 91%;
-    --sidebar-ring: 217.2 91.2% 59.8%;
+    --sidebar-accent: 45 10% 96%;
+    --sidebar-accent-foreground: 0 0% 10%;
+    --sidebar-border: 45 10% 91%;
+    --sidebar-ring: 45 90% 50%;
   }
 
   .dark {
-    --background: 220 25% 6%;
-    --foreground: 30 15% 95%;
+    --background: 0 0% 6%;
+    --foreground: 45 10% 95%;
 
-    --card: 220 25% 10%;
-    --card-foreground: 30 15% 95%;
+    --card: 0 0% 10%;
+    --card-foreground: 45 10% 95%;
 
-    --popover: 220 25% 10%;
-    --popover-foreground: 30 15% 95%;
+    --popover: 0 0% 10%;
+    --popover-foreground: 45 10% 95%;
 
-    --primary: 38 70% 50%;
-    --primary-foreground: 220 40% 10%;
+    --primary: 45 85% 55%;
+    --primary-foreground: 0 0% 8%;
 
-    --secondary: 220 30% 25%;
+    --secondary: 0 0% 20%;
     --secondary-foreground: 0 0% 100%;
 
-    --muted: 220 20% 15%;
-    --muted-foreground: 30 10% 60%;
+    --muted: 0 0% 15%;
+    --muted-foreground: 45 10% 60%;
 
-    --accent: 38 70% 50%;
-    --accent-foreground: 220 40% 10%;
+    --accent: 45 85% 55%;
+    --accent-foreground: 0 0% 8%;
 
     --destructive: 0 62% 45%;
     --destructive-foreground: 0 0% 100%;
 
-    --success: 160 50% 40%;
+    --success: 142 60% 45%;
     --success-foreground: 0 0% 100%;
 
-    --border: 220 20% 18%;
-    --input: 220 20% 18%;
-    --ring: 38 70% 50%;
+    --border: 0 0% 18%;
+    --input: 0 0% 18%;
+    --ring: 45 85% 55%;
 
-    --gradient-hero: linear-gradient(135deg, hsl(220 25% 6%) 0%, hsl(220 30% 12%) 50%, hsl(38 70% 50% / 0.1) 100%);
-    --gradient-card: linear-gradient(180deg, hsl(220 25% 12%) 0%, hsl(220 25% 10%) 100%);
+    --gradient-hero: linear-gradient(135deg, hsl(0 0% 6%) 0%, hsl(0 0% 12%) 50%, hsl(45 85% 55% / 0.1) 100%);
+    --gradient-card: linear-gradient(180deg, hsl(0 0% 12%) 0%, hsl(0 0% 10%) 100%);
 
-    --sidebar-background: 240 5.9% 10%;
-    --sidebar-foreground: 240 4.8% 95.9%;
-    --sidebar-primary: 224.3 76.3% 48%;
+    --sidebar-background: 0 0% 10%;
+    --sidebar-foreground: 45 10% 96%;
+    --sidebar-primary: 45 85% 55%;
     --sidebar-primary-foreground: 0 0% 100%;
-    --sidebar-accent: 240 3.7% 15.9%;
-    --sidebar-accent-foreground: 240 4.8% 95.9%;
-    --sidebar-border: 240 3.7% 15.9%;
-    --sidebar-ring: 217.2 91.2% 59.8%;
+    --sidebar-accent: 0 0% 16%;
+    --sidebar-accent-foreground: 45 10% 96%;
+    --sidebar-border: 0 0% 16%;
+    --sidebar-ring: 45 85% 55%;
   }
 }
 
@@ -124,13 +124,13 @@
 
   body {
     @apply bg-background text-foreground antialiased;
-    font-family: 'Montserrat', sans-serif;
+    font-family: 'Poppins', sans-serif;
     font-weight: 400;
     letter-spacing: 0.01em;
   }
 
   h1, h2, h3, h4, h5, h6 {
-    font-family: 'Cormorant Garamond', serif;
+    font-family: 'Playfair Display', serif;
     @apply font-semibold tracking-tight;
     letter-spacing: -0.02em;
   }
@@ -138,11 +138,11 @@
 
 @layer utilities {
   .font-display {
-    font-family: 'Cormorant Garamond', serif;
+    font-family: 'Playfair Display', serif;
   }
 
   .font-body {
-    font-family: 'Montserrat', sans-serif;
+    font-family: 'Poppins', sans-serif;
   }
 
   .text-gradient {
@@ -171,15 +171,15 @@
   }
 
   .glass {
-    @apply bg-white/70 backdrop-blur-xl;
+    @apply bg-white/80 backdrop-blur-xl;
   }
 
   .glass-dark {
-    @apply bg-black/30 backdrop-blur-xl;
+    @apply bg-black/40 backdrop-blur-xl;
   }
 
   .border-gold {
-    border-color: hsl(38 75% 45%);
+    border-color: hsl(45 90% 50%);
   }
 
   /* Animações Elegantes */
@@ -245,8 +245,8 @@
 
 /* Seleção de texto dourada */
 ::selection {
-  background: hsl(38 75% 45% / 0.3);
-  color: hsl(30 10% 12%);
+  background: hsl(45 90% 50% / 0.3);
+  color: hsl(0 0% 10%);
 }
 
 /* Focus styles luxuosos */
@@ -256,7 +256,7 @@
 
 /* Bordas douradas sutis */
 .border-luxury {
-  border: 1px solid hsl(38 75% 45% / 0.2);
+  border: 1px solid hsl(45 90% 50% / 0.2);
 }
 
 /* Hover dourado */
@@ -265,5 +265,5 @@
 }
 
 .hover-gold:hover {
-  box-shadow: 0 0 30px hsl(38 75% 45% / 0.15);
+  box-shadow: 0 0 30px hsl(45 90% 50% / 0.15);
 }
