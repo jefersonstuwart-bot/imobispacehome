@@ -1,12 +1,15 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { DashboardLayout } from '@/components/dashboard/DashboardLayout';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Switch } from '@/components/ui/switch';
+import { Progress } from '@/components/ui/progress';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/hooks/useAuth';
+import { useProposalNotifications } from '@/hooks/useProposalNotifications';
+import { useProposalTimers } from '@/hooks/useProposalTimer';
 import { 
   FileText, 
   Clock, 
@@ -16,7 +19,9 @@ import {
   User,
   Phone,
   Mail,
-  Building2
+  Building2,
+  AlertTriangle,
+  Timer
 } from 'lucide-react';
 import { toast } from 'sonner';
 
@@ -27,7 +32,7 @@ export default function BrokerDashboard() {
 
   const isOnline = profile?.status === 'online';
 
-  const { data: proposals } = useQuery({
+  const { data: proposals, refetch } = useQuery({
     queryKey: ['broker-proposals', user?.id],
     queryFn: async () => {
       const { data, error } = await supabase
@@ -43,6 +48,47 @@ export default function BrokerDashboard() {
       return data;
     },
     enabled: !!user?.id,
+  });
+
+  // Use notification hook for realtime updates
+  useProposalNotifications({
+    onNewProposal: () => {
+      refetch();
+      queryClient.invalidateQueries({ queryKey: ['broker-proposals'] });
+    },
+  });
+
+  // Use timer hook for pending proposals
+  const { getTimer, formatTime } = useProposalTimers(
+    proposals?.map(p => ({ 
+      id: p.id, 
+      assigned_at: p.assigned_at, 
+      status: p.status || 'new' 
+    }))
+  );
+
+  // Accept proposal mutation
+  const acceptMutation = useMutation({
+    mutationFn: async (proposalId: string) => {
+      const { error } = await supabase
+        .from('proposals')
+        .update({
+          status: 'in_progress',
+          accepted_at: new Date().toISOString(),
+        })
+        .eq('id', proposalId)
+        .eq('assigned_broker_id', user?.id);
+      
+      if (error) throw error;
+    },
+    onSuccess: () => {
+      refetch();
+      queryClient.invalidateQueries({ queryKey: ['broker-proposals'] });
+      toast.success('Proposta aceita! Agora você pode ver os dados do cliente.');
+    },
+    onError: (error) => {
+      toast.error('Erro ao aceitar proposta', { description: error.message });
+    },
   });
 
   const handleStatusToggle = async () => {
@@ -184,46 +230,96 @@ export default function BrokerDashboard() {
               <div className="space-y-4">
                 {proposals.map((proposal) => {
                   const statusConfig = getStatusBadge(proposal.status || '');
+                  const timer = getTimer(proposal.id);
+                  const isPending = proposal.status === 'pending_acceptance';
+                  
                   return (
                     <div
                       key={proposal.id}
-                      className="p-4 rounded-xl bg-muted/50 border border-border hover:border-primary/30 transition-colors"
+                      className={`p-4 rounded-xl border transition-colors ${
+                        isPending 
+                          ? 'bg-amber-500/10 border-amber-500/30 animate-pulse-subtle' 
+                          : 'bg-muted/50 border-border hover:border-primary/30'
+                      }`}
                     >
-                      <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
-                        <div className="space-y-2">
-                          <div className="flex items-center gap-2">
-                            <Building2 className="w-4 h-4 text-secondary" />
-                            <span className="font-semibold">
-                              {proposal.property?.name}
-                            </span>
-                            <Badge variant="outline" className={statusConfig.className}>
-                              {statusConfig.label}
-                            </Badge>
+                      <div className="flex flex-col gap-4">
+                        {/* Timer for pending proposals */}
+                        {isPending && timer && (
+                          <div className="flex items-center gap-3 p-3 rounded-lg bg-amber-500/20 border border-amber-500/30">
+                            <Timer className="w-5 h-5 text-amber-400" />
+                            <div className="flex-1">
+                              <div className="flex items-center justify-between mb-1">
+                                <span className="text-sm font-medium text-amber-400">
+                                  Tempo para aceitar
+                                </span>
+                                <span className={`text-lg font-bold ${
+                                  timer.remainingTime < 60000 ? 'text-destructive' : 'text-amber-400'
+                                }`}>
+                                  {formatTime(timer.remainingTime)}
+                                </span>
+                              </div>
+                              <Progress 
+                                value={timer.percentRemaining} 
+                                className="h-2 bg-amber-500/20"
+                              />
+                            </div>
+                            {timer.remainingTime < 60000 && (
+                              <AlertTriangle className="w-5 h-5 text-destructive animate-pulse" />
+                            )}
                           </div>
-                          <div className="flex flex-wrap gap-4 text-sm text-muted-foreground">
-                            <span className="flex items-center gap-1">
-                              <User className="w-3 h-3" />
-                              {proposal.client_name}
-                            </span>
-                            <span className="flex items-center gap-1">
-                              <Phone className="w-3 h-3" />
-                              {proposal.client_phone}
-                            </span>
-                            <span className="flex items-center gap-1">
-                              <Mail className="w-3 h-3" />
-                              {proposal.client_email}
-                            </span>
+                        )}
+                        
+                        <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
+                          <div className="space-y-2">
+                            <div className="flex items-center gap-2">
+                              <Building2 className="w-4 h-4 text-secondary" />
+                              <span className="font-semibold">
+                                {proposal.property?.name}
+                              </span>
+                              <Badge variant="outline" className={statusConfig.className}>
+                                {statusConfig.label}
+                              </Badge>
+                            </div>
+                            <div className="flex flex-wrap gap-4 text-sm text-muted-foreground">
+                              <span className="flex items-center gap-1">
+                                <User className="w-3 h-3" />
+                                {proposal.client_name}
+                              </span>
+                              {proposal.status === 'in_progress' || proposal.status === 'completed' ? (
+                                <>
+                                  <span className="flex items-center gap-1">
+                                    <Phone className="w-3 h-3" />
+                                    {proposal.client_phone}
+                                  </span>
+                                  <span className="flex items-center gap-1">
+                                    <Mail className="w-3 h-3" />
+                                    {proposal.client_email}
+                                  </span>
+                                </>
+                              ) : (
+                                <span className="text-xs text-muted-foreground italic">
+                                  Aceite a proposta para ver os dados de contato
+                                </span>
+                              )}
+                            </div>
                           </div>
-                        </div>
-                        <div className="flex gap-2">
-                          {proposal.status === 'pending_acceptance' && (
-                            <Button variant="gold" size="sm">
-                              Aceitar Proposta
-                            </Button>
-                          )}
-                          <Button variant="outline" size="sm">
-                            Ver Detalhes
-                          </Button>
+                          <div className="flex gap-2">
+                            {isPending && (
+                              <Button 
+                                variant="gold" 
+                                size="sm"
+                                onClick={() => acceptMutation.mutate(proposal.id)}
+                                disabled={acceptMutation.isPending}
+                              >
+                                {acceptMutation.isPending ? 'Aceitando...' : 'Aceitar Proposta'}
+                              </Button>
+                            )}
+                            {(proposal.status === 'in_progress' || proposal.status === 'completed') && (
+                              <Button variant="outline" size="sm">
+                                Ver Detalhes
+                              </Button>
+                            )}
+                          </div>
                         </div>
                       </div>
                     </div>
