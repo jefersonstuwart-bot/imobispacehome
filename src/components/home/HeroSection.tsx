@@ -1,5 +1,5 @@
 import { Button } from '@/components/ui/button';
-import { ArrowDown, Sparkles } from 'lucide-react';
+import { ArrowDown, Sparkles, Crown, Award } from 'lucide-react';
 
 export function HeroSection() {
   const scrollToProperties = () => {
@@ -7,53 +7,86 @@ export function HeroSection() {
   };
 
   return (
-    <section className="relative min-h-[80vh] flex items-center justify-center overflow-hidden bg-gradient-hero">
-      {/* Background Pattern */}
-      <div className="absolute inset-0 opacity-10">
+    <section className="relative min-h-screen flex items-center justify-center overflow-hidden bg-gradient-hero">
+      {/* Padrão de fundo elegante */}
+      <div className="absolute inset-0 opacity-5">
         <div className="absolute inset-0" style={{
-          backgroundImage: `radial-gradient(circle at 25px 25px, white 2px, transparent 0)`,
-          backgroundSize: '50px 50px',
+          backgroundImage: `radial-gradient(circle at 1px 1px, currentColor 1px, transparent 0)`,
+          backgroundSize: '40px 40px',
         }} />
       </div>
 
-      {/* Floating Elements */}
-      <div className="absolute top-20 left-10 w-20 h-20 rounded-full bg-white/10 blur-2xl animate-pulse" />
-      <div className="absolute bottom-20 right-10 w-32 h-32 rounded-full bg-secondary/20 blur-3xl animate-pulse" style={{ animationDelay: '1s' }} />
-      <div className="absolute top-1/2 right-1/4 w-16 h-16 rounded-full bg-white/5 blur-xl animate-pulse" style={{ animationDelay: '0.5s' }} />
+      {/* Elementos flutuantes dourados */}
+      <div className="absolute top-32 left-20 w-2 h-2 rounded-full bg-primary animate-float opacity-60" />
+      <div className="absolute top-40 right-32 w-3 h-3 rounded-full bg-primary animate-float opacity-40" style={{ animationDelay: '1s' }} />
+      <div className="absolute bottom-40 left-1/4 w-2 h-2 rounded-full bg-primary animate-float opacity-50" style={{ animationDelay: '2s' }} />
+      <div className="absolute top-1/3 right-20 w-1.5 h-1.5 rounded-full bg-primary animate-float opacity-70" style={{ animationDelay: '0.5s' }} />
+
+      {/* Linhas decorativas */}
+      <div className="absolute top-0 left-1/2 w-px h-32 bg-gradient-to-b from-transparent via-primary/30 to-transparent" />
+      <div className="absolute bottom-0 left-1/2 w-px h-32 bg-gradient-to-t from-transparent via-primary/30 to-transparent" />
 
       <div className="container relative z-10 text-center px-4">
-        <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-white/10 backdrop-blur-sm border border-white/20 mb-6 animate-fade-in">
-          <Sparkles className="w-4 h-4 text-secondary" />
-          <span className="text-sm text-white/90">Tecnologia e Inovação Imobiliária</span>
+        {/* Badge de luxo */}
+        <div className="inline-flex items-center gap-3 px-6 py-3 rounded-full border border-primary/30 bg-primary/5 backdrop-blur-sm mb-8 animate-fade-in">
+          <Crown className="w-4 h-4 text-primary" />
+          <span className="text-sm font-medium tracking-widest uppercase text-primary">
+            Experiência Premium
+          </span>
+          <Award className="w-4 h-4 text-primary" />
         </div>
 
-        <h1 className="font-display text-4xl md:text-6xl lg:text-7xl font-bold text-white mb-6 animate-slide-up">
-          Encontre o Imóvel
-          <span className="block text-secondary mt-2">dos Seus Sonhos</span>
+        {/* Título principal */}
+        <h1 className="font-display text-5xl md:text-7xl lg:text-8xl font-semibold text-white mb-6 animate-slide-up leading-tight">
+          Descubra a Arte de
+          <span className="block text-gradient mt-2">Viver com Exclusividade</span>
         </h1>
 
-        <p className="text-lg md:text-xl text-white/80 max-w-2xl mx-auto mb-10 animate-slide-up" style={{ animationDelay: '0.2s' }}>
-          Descubra empreendimentos exclusivos com descrições criadas por Inteligência Artificial 
-          para ajudá-lo a encontrar o lar perfeito.
+        {/* Linha decorativa */}
+        <div className="flex items-center justify-center gap-4 mb-8 animate-fade-in" style={{ animationDelay: '0.3s' }}>
+          <div className="h-px w-16 bg-gradient-to-r from-transparent to-primary/50" />
+          <Sparkles className="w-5 h-5 text-primary" />
+          <div className="h-px w-16 bg-gradient-to-l from-transparent to-primary/50" />
+        </div>
+
+        <p className="text-lg md:text-xl text-white/70 max-w-2xl mx-auto mb-12 animate-slide-up font-light tracking-wide" style={{ animationDelay: '0.2s' }}>
+          Empreendimentos selecionados com curadoria exclusiva. 
+          Cada detalhe pensado para quem valoriza o extraordinário.
         </p>
 
         <div className="flex flex-col sm:flex-row items-center justify-center gap-4 animate-slide-up" style={{ animationDelay: '0.4s' }}>
-          <Button variant="hero" size="xl" onClick={scrollToProperties}>
-            Ver Empreendimentos
-            <ArrowDown className="w-5 h-5 animate-bounce" />
+          <Button 
+            variant="hero" 
+            size="xl" 
+            onClick={scrollToProperties}
+            className="group"
+          >
+            <span className="tracking-wider">Explorar Empreendimentos</span>
+            <ArrowDown className="w-5 h-5 ml-2 group-hover:translate-y-1 transition-transform" />
           </Button>
+        </div>
+
+        {/* Indicadores de credibilidade */}
+        <div className="flex items-center justify-center gap-12 mt-20 animate-fade-in" style={{ animationDelay: '0.6s' }}>
+          <div className="text-center">
+            <p className="font-display text-3xl md:text-4xl font-semibold text-primary">50+</p>
+            <p className="text-xs uppercase tracking-widest text-white/50 mt-1">Empreendimentos</p>
+          </div>
+          <div className="w-px h-12 bg-white/20" />
+          <div className="text-center">
+            <p className="font-display text-3xl md:text-4xl font-semibold text-primary">R$2B+</p>
+            <p className="text-xs uppercase tracking-widest text-white/50 mt-1">Em Negociações</p>
+          </div>
+          <div className="w-px h-12 bg-white/20" />
+          <div className="text-center">
+            <p className="font-display text-3xl md:text-4xl font-semibold text-primary">500+</p>
+            <p className="text-xs uppercase tracking-widest text-white/50 mt-1">Clientes Premium</p>
+          </div>
         </div>
       </div>
 
-      {/* Bottom Wave */}
-      <div className="absolute bottom-0 left-0 right-0">
-        <svg viewBox="0 0 1440 120" fill="none" xmlns="http://www.w3.org/2000/svg">
-          <path
-            d="M0 120L60 110C120 100 240 80 360 70C480 60 600 60 720 65C840 70 960 80 1080 85C1200 90 1320 90 1380 90L1440 90V120H1380C1320 120 1200 120 1080 120C960 120 840 120 720 120C600 120 480 120 360 120C240 120 120 120 60 120H0Z"
-            fill="hsl(var(--background))"
-          />
-        </svg>
-      </div>
+      {/* Gradiente de transição para seção abaixo */}
+      <div className="absolute bottom-0 left-0 right-0 h-32 bg-gradient-to-t from-background to-transparent" />
     </section>
   );
 }

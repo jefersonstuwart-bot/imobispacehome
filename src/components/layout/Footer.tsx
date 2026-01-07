@@ -1,55 +1,66 @@
-import { Home, Mail, Phone, MapPin } from 'lucide-react';
+import { Home, Mail, Phone, MapPin, Crown } from 'lucide-react';
 
 export function Footer() {
   return (
-    <footer className="bg-primary text-primary-foreground mt-auto">
-      <div className="container py-12">
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
-          <div className="space-y-4">
-            <div className="flex items-center gap-2">
-              <div className="w-10 h-10 rounded-xl bg-white/10 flex items-center justify-center">
-                <Home className="w-5 h-5" />
+    <footer className="bg-secondary text-white">
+      <div className="container py-16">
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-12">
+          <div className="space-y-6">
+            <div className="flex items-center gap-3">
+              <div className="w-12 h-12 rounded-xl bg-primary/20 flex items-center justify-center">
+                <Home className="w-6 h-6 text-primary" />
               </div>
               <div>
-                <span className="font-display text-xl font-bold">ImobiSpace</span>
-                <span className="block text-xs text-white/70">Home</span>
+                <span className="font-display text-2xl font-semibold">ImobiSpace</span>
+                <span className="block text-[10px] uppercase tracking-[0.3em] text-white/50">Home</span>
               </div>
             </div>
-            <p className="text-sm text-white/80 max-w-xs">
-              Conectando você ao imóvel dos seus sonhos com tecnologia e atendimento personalizado.
+            <p className="text-sm text-white/60 max-w-xs leading-relaxed font-light">
+              Experiência imobiliária de alto padrão. Conectamos você aos 
+              empreendimentos mais exclusivos do mercado.
             </p>
+            <div className="flex items-center gap-2 text-primary">
+              <Crown className="w-4 h-4" />
+              <span className="text-xs uppercase tracking-widest font-medium">Premium Experience</span>
+            </div>
           </div>
 
-          <div className="space-y-4">
-            <h4 className="font-display text-lg font-semibold">Contato</h4>
-            <div className="space-y-2 text-sm text-white/80">
-              <a href="mailto:contato@imobispace.com" className="flex items-center gap-2 hover:text-white transition-colors">
-                <Mail className="w-4 h-4" />
+          <div className="space-y-6">
+            <h4 className="font-display text-lg font-semibold text-primary">Contato Exclusivo</h4>
+            <div className="space-y-4 text-sm text-white/60">
+              <a href="mailto:contato@imobispace.com" className="flex items-center gap-3 hover:text-primary transition-colors">
+                <Mail className="w-4 h-4 text-primary/60" />
                 contato@imobispace.com
               </a>
-              <a href="tel:+5511999999999" className="flex items-center gap-2 hover:text-white transition-colors">
-                <Phone className="w-4 h-4" />
+              <a href="tel:+5511999999999" className="flex items-center gap-3 hover:text-primary transition-colors">
+                <Phone className="w-4 h-4 text-primary/60" />
                 (11) 99999-9999
               </a>
-              <p className="flex items-center gap-2">
-                <MapPin className="w-4 h-4" />
+              <p className="flex items-center gap-3">
+                <MapPin className="w-4 h-4 text-primary/60" />
                 São Paulo, SP
               </p>
             </div>
           </div>
 
-          <div className="space-y-4">
-            <h4 className="font-display text-lg font-semibold">Horário de Atendimento</h4>
-            <div className="space-y-1 text-sm text-white/80">
-              <p>Segunda a Sexta: 9h às 18h</p>
-              <p>Sábado: 9h às 13h</p>
-              <p>Domingo: Fechado</p>
+          <div className="space-y-6">
+            <h4 className="font-display text-lg font-semibold text-primary">Atendimento</h4>
+            <div className="space-y-2 text-sm text-white/60 font-light">
+              <p>Segunda a Sexta: 9h às 19h</p>
+              <p>Sábado: 9h às 14h</p>
+              <p className="text-primary/80 font-medium mt-4">Agendamento exclusivo disponível</p>
             </div>
           </div>
         </div>
 
-        <div className="border-t border-white/10 mt-8 pt-8 text-center text-sm text-white/60">
-          <p>© {new Date().getFullYear()} ImobiSpace Home. Todos os direitos reservados.</p>
+        <div className="border-t border-white/10 mt-12 pt-8 flex flex-col md:flex-row items-center justify-between gap-4">
+          <p className="text-xs text-white/40 tracking-wide">
+            © {new Date().getFullYear()} ImobiSpace Home. Todos os direitos reservados.
+          </p>
+          <div className="flex items-center gap-6 text-xs text-white/40">
+            <a href="#" className="hover:text-primary transition-colors">Privacidade</a>
+            <a href="#" className="hover:text-primary transition-colors">Termos</a>
+          </div>
         </div>
       </div>
     </footer>
