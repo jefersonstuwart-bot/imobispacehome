@@ -43,12 +43,12 @@ export function PartnersSection() {
           {partners.map((partner) => (
             <div
               key={partner.id}
-              className="group flex items-center justify-center p-4 grayscale hover:grayscale-0 opacity-70 hover:opacity-100 transition-all duration-300"
+              className="group flex items-center justify-center p-4 hover:scale-105 transition-all duration-300"
             >
               <img
                 src={partner.logo_url}
                 alt={partner.name}
-                className="max-h-12 md:max-h-16 w-auto object-contain"
+                className="max-h-14 md:max-h-20 w-auto object-contain"
                 title={partner.name}
               />
             </div>
