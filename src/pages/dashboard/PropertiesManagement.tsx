@@ -301,7 +301,25 @@ export default function PropertiesManagement() {
     if (!error) {
       const { data } = supabase.storage.from('property-documents').getPublicUrl(fileName);
       setPdfUrl(data.publicUrl);
-      toast.success('PDF enviado com sucesso!');
+      toast.success('PDF enviado! Extraindo imagem de capa...');
+      
+      // Extrair capa automaticamente
+      try {
+        const { data: coverData, error: coverError } = await supabase.functions.invoke('extract-pdf-cover', {
+          body: { pdfUrl: data.publicUrl }
+        });
+        
+        if (!coverError && coverData?.coverImage) {
+          setPdfCoverImage(coverData.coverImage);
+          toast.success('Imagem de capa extraída automaticamente!');
+        } else {
+          console.log('Cover extraction returned no image:', coverData);
+          toast.info('Não foi possível extrair capa automática. Você pode enviar uma manualmente.');
+        }
+      } catch (coverErr) {
+        console.error('Error extracting cover:', coverErr);
+        toast.info('Não foi possível extrair capa. Envie uma imagem manualmente.');
+      }
     } else {
       toast.error('Erro ao enviar PDF');
     }
