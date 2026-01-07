@@ -5,9 +5,10 @@ interface Property {
   id: string;
   name: string;
   location: string;
-  images: string[];
+  images: string[] | null;
   ai_description: string | null;
   pdf_url: string | null;
+  pdf_cover_image: string | null;
 }
 
 interface PropertyGridProps {
