@@ -1,4 +1,5 @@
 import { Mail, Phone, MapPin, Crown } from 'lucide-react';
+import { Link } from 'react-router-dom';
 import logo from '@/assets/logo-imobispace.png';
 
 export function Footer() {
@@ -65,8 +66,8 @@ export function Footer() {
             © {new Date().getFullYear()} ImobiSpace Home. Todos os direitos reservados.
           </p>
           <div className="flex items-center gap-6 text-xs text-white/40">
-            <a href="#" className="hover:text-primary transition-colors">Privacidade</a>
-            <a href="#" className="hover:text-primary transition-colors">Termos</a>
+            <Link to="/privacidade" className="hover:text-primary transition-colors">Privacidade</Link>
+            <Link to="/termos" className="hover:text-primary transition-colors">Termos</Link>
           </div>
         </div>
       </div>

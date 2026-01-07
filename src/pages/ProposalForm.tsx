@@ -14,6 +14,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
 import { Label } from '@/components/ui/label';
 import { Alert, AlertDescription } from '@/components/ui/alert';
+import { Checkbox } from '@/components/ui/checkbox';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
 import { ChevronLeft, Upload, Loader2, CheckCircle, User, FileText, CreditCard, AlertTriangle, RefreshCw } from 'lucide-react';
@@ -49,6 +50,7 @@ export default function ProposalForm() {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [uploadedDocs, setUploadedDocs] = useState<Record<string, DocumentStatus>>({});
   const [checkingDoc, setCheckingDoc] = useState<string | null>(null);
+  const [acceptedTerms, setAcceptedTerms] = useState(false);
 
   const { data: property } = useQuery({
     queryKey: ['property', propertyId],
@@ -201,6 +203,14 @@ export default function ProposalForm() {
 
   const onSubmit = async (data: ProposalFormData) => {
     if (!propertyId) return;
+
+    // Verificar se aceitou os termos
+    if (!acceptedTerms) {
+      toast.error('Termos obrigatórios', {
+        description: 'Você precisa concordar com os Termos de Uso e Política de Privacidade.',
+      });
+      return;
+    }
 
     // Validate required documents
     const requiredDocs = DOCUMENT_TYPES.filter(d => d.required).map(d => d.id);
@@ -632,12 +642,39 @@ export default function ProposalForm() {
               </CardContent>
             </Card>
 
+            {/* Termos de Uso */}
+            <Card className="border-0 shadow-luxury">
+              <CardContent className="pt-6">
+                <div className="flex items-start space-x-3">
+                  <Checkbox 
+                    id="terms" 
+                    checked={acceptedTerms}
+                    onCheckedChange={(checked) => setAcceptedTerms(checked as boolean)}
+                  />
+                  <label 
+                    htmlFor="terms" 
+                    className="text-sm text-muted-foreground leading-relaxed cursor-pointer"
+                  >
+                    Li e concordo com os{' '}
+                    <Link to="/termos" target="_blank" className="text-primary hover:underline font-medium">
+                      Termos de Uso
+                    </Link>{' '}
+                    e a{' '}
+                    <Link to="/privacidade" target="_blank" className="text-primary hover:underline font-medium">
+                      Política de Privacidade
+                    </Link>{' '}
+                    do ImobiSpace Home.
+                  </label>
+                </div>
+              </CardContent>
+            </Card>
+
             <Button
               type="submit"
               variant="gold"
               size="lg"
               className="w-full"
-              disabled={isSubmitting || checkingDoc !== null}
+              disabled={isSubmitting || checkingDoc !== null || !acceptedTerms}
             >
               {isSubmitting ? (
                 <>

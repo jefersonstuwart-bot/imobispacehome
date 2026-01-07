@@ -10,6 +10,8 @@ import Auth from "./pages/Auth";
 import PropertyDetail from "./pages/PropertyDetail";
 import ProposalForm from "./pages/ProposalForm";
 import ProposalSuccess from "./pages/ProposalSuccess";
+import PrivacyPolicy from "./pages/PrivacyPolicy";
+import TermsOfUse from "./pages/TermsOfUse";
 import DashboardOverview from "./pages/dashboard/DashboardOverview";
 import PropertiesManagement from "./pages/dashboard/PropertiesManagement";
 import BrokersManagement from "./pages/dashboard/BrokersManagement";
@@ -31,6 +33,8 @@ const App = () => (
             <Route path="/empreendimento/:id" element={<PropertyDetail />} />
             <Route path="/proposta/:propertyId" element={<ProposalForm />} />
             <Route path="/proposta-enviada" element={<ProposalSuccess />} />
+            <Route path="/privacidade" element={<PrivacyPolicy />} />
+            <Route path="/termos" element={<TermsOfUse />} />
             
             {/* Dashboard Routes */}
             <Route path="/dashboard" element={<DashboardOverview />} />
