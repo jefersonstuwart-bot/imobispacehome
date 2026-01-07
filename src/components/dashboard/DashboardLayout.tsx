@@ -26,7 +26,7 @@ const adminLinks = [
 ];
 
 const brokerLinks = [
-  { href: '/dashboard', label: 'Minhas Propostas', icon: FileText },
+  { href: '/dashboard/corretor', label: 'Minhas Propostas', icon: FileText },
 ];
 
 export function DashboardLayout({ children }: DashboardLayoutProps) {
