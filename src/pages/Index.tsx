@@ -3,6 +3,7 @@ import { Layout } from '@/components/layout/Layout';
 import { HeroSection } from '@/components/home/HeroSection';
 import { PropertyGrid } from '@/components/properties/PropertyGrid';
 import { RecentProposals } from '@/components/home/RecentProposals';
+import { PartnersSection } from '@/components/home/PartnersSection';
 import { supabase } from '@/integrations/supabase/client';
 import { Sparkles } from 'lucide-react';
 
@@ -80,6 +81,9 @@ export default function Index() {
           </div>
         </div>
       </section>
+
+      {/* Seção de Parceiros */}
+      <PartnersSection />
     </Layout>
   );
 }
