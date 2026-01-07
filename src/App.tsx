@@ -14,6 +14,7 @@ import DashboardOverview from "./pages/dashboard/DashboardOverview";
 import PropertiesManagement from "./pages/dashboard/PropertiesManagement";
 import BrokersManagement from "./pages/dashboard/BrokersManagement";
 import ProposalsManagement from "./pages/dashboard/ProposalsManagement";
+import BrokerDashboard from "./pages/dashboard/BrokerDashboard";
 
 const queryClient = new QueryClient();
 
@@ -36,6 +37,7 @@ const App = () => (
             <Route path="/dashboard/empreendimentos" element={<PropertiesManagement />} />
             <Route path="/dashboard/corretores" element={<BrokersManagement />} />
             <Route path="/dashboard/propostas" element={<ProposalsManagement />} />
+            <Route path="/dashboard/corretor" element={<BrokerDashboard />} />
             
             {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
             <Route path="*" element={<NotFound />} />
