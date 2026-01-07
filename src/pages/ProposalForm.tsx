@@ -239,9 +239,13 @@ export default function ProposalForm() {
     try {
       const proposalValue = parseFloat(data.proposal_value.replace(/[^\d,]/g, '').replace(',', '.'));
 
-      const { data: proposal, error: proposalError } = await supabase
+      // Gerar ID localmente para evitar problemas de RLS ao tentar ler o registro inserido
+      const proposalId = crypto.randomUUID();
+      
+      const { error: proposalError } = await supabase
         .from('proposals')
         .insert({
+          id: proposalId,
           property_id: propertyId,
           client_name: data.client_name,
           client_cpf: data.client_cpf,
@@ -256,13 +260,11 @@ export default function ProposalForm() {
           proposal_value: proposalValue,
           proposal_description: data.proposal_description,
           status: 'new',
-        })
-        .select()
-        .single();
+        });
 
       if (proposalError) throw proposalError;
 
-      await uploadDocuments(proposal.id);
+      await uploadDocuments(proposalId);
 
       toast.success('Proposta enviada com sucesso!', {
         description: 'Em breve um corretor entrará em contato.',
