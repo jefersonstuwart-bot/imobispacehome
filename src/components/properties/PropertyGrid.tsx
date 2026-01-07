@@ -9,6 +9,8 @@ interface Property {
   ai_description: string | null;
   pdf_url: string | null;
   pdf_cover_image: string | null;
+  is_mcmv?: boolean;
+  mcmv_logo_url?: string | null;
 }
 
 interface PropertyGridProps {

@@ -12,6 +12,8 @@ interface PropertyCardProps {
     ai_description: string | null;
     pdf_url: string | null;
     pdf_cover_image: string | null;
+    is_mcmv?: boolean;
+    mcmv_logo_url?: string | null;
   };
 }
 
@@ -34,6 +36,17 @@ export function PropertyCard({ property }: PropertyCardProps) {
         
         {/* Borda dourada sutil ao hover */}
         <div className="absolute inset-0 border-2 border-primary/0 group-hover:border-primary/30 transition-colors duration-500 rounded-t-lg" />
+
+        {/* Badge MCMV */}
+        {property.is_mcmv && property.mcmv_logo_url && (
+          <div className="absolute top-4 left-4 bg-white rounded-lg p-1.5 shadow-lg">
+            <img 
+              src={property.mcmv_logo_url} 
+              alt="Minha Casa Minha Vida" 
+              className="h-8 w-auto object-contain"
+            />
+          </div>
+        )}
 
         {/* Badge PDF */}
         {property.pdf_url && (
