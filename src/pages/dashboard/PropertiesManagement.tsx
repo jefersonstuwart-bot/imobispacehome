@@ -14,7 +14,7 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
-import { Plus, Pencil, Trash2, Sparkles, Loader2, MapPin, Image, FileText, Eye, Building2, DollarSign, Ruler } from 'lucide-react';
+import { Plus, Pencil, Trash2, Sparkles, Loader2, MapPin, Image, FileText, Eye, Building2, DollarSign, Ruler, Upload, Download } from 'lucide-react';
 import { PartnersManagement } from '@/components/dashboard/PartnersManagement';
 
 interface Property {
@@ -79,7 +79,7 @@ export default function PropertiesManagement() {
     status: 'available',
   });
   const [editingPrice, setEditingPrice] = useState<PropertyPrice | null>(null);
-
+  const [uploadingPriceTable, setUploadingPriceTable] = useState(false);
   const queryClient = useQueryClient();
 
   const { data: properties, isLoading } = useQuery({
@@ -455,6 +455,79 @@ export default function PropertiesManagement() {
     resetPriceForm();
   };
 
+  const handlePriceTableUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file || !selectedPropertyForPrices) return;
+
+    setUploadingPriceTable(true);
+
+    try {
+      const text = await file.text();
+      const lines = text.split('\n').filter(line => line.trim());
+      
+      // Pula o cabeçalho se existir
+      const dataLines = lines[0].toLowerCase().includes('tipo') || lines[0].toLowerCase().includes('unidade') 
+        ? lines.slice(1) 
+        : lines;
+
+      let imported = 0;
+      
+      for (const line of dataLines) {
+        // Suporta CSV com ; ou ,
+        const separator = line.includes(';') ? ';' : ',';
+        const cols = line.split(separator).map(c => c.trim().replace(/"/g, ''));
+        
+        if (cols.length < 3) continue;
+
+        // Formato esperado: Tipo/Unidade, Área, Quartos, Suítes, Vagas, Andar, Preço, Status
+        const priceData = {
+          property_id: selectedPropertyForPrices.id,
+          unit_type: cols[0] || 'Unidade',
+          area_m2: parseFloat(cols[1]?.replace(',', '.')) || 0,
+          bedrooms: cols[2] ? parseInt(cols[2]) : null,
+          suites: cols[3] ? parseInt(cols[3]) : null,
+          parking_spots: cols[4] ? parseInt(cols[4]) : null,
+          floor: cols[5] || null,
+          price: parseFloat(cols[6]?.replace(/[^\d,.-]/g, '').replace(',', '.')) || 0,
+          status: cols[7]?.toLowerCase() === 'vendido' ? 'sold' 
+            : cols[7]?.toLowerCase() === 'reservado' ? 'reserved' 
+            : 'available',
+        };
+
+        if (priceData.area_m2 > 0 && priceData.price > 0) {
+          const { error } = await supabase.from('property_prices').insert([priceData]);
+          if (!error) imported++;
+        }
+      }
+
+      if (imported > 0) {
+        toast.success(`${imported} unidade(s) importada(s) com sucesso!`);
+        refetchPrices();
+      } else {
+        toast.error('Nenhuma unidade válida encontrada no arquivo');
+      }
+    } catch (error) {
+      console.error('Error parsing CSV:', error);
+      toast.error('Erro ao processar arquivo. Verifique o formato.');
+    } finally {
+      setUploadingPriceTable(false);
+      e.target.value = '';
+    }
+  };
+
+  const downloadTemplateCSV = () => {
+    const template = `Unidade;Área (m²);Quartos;Suítes;Vagas;Andar;Preço;Status
+Apto 101;65.5;2;1;1;1º;350000;Disponível
+Apto 102;72.3;3;1;2;1º;420000;Disponível
+Apto 201;65.5;2;1;1;2º;365000;Reservado`;
+    
+    const blob = new Blob([template], { type: 'text/csv;charset=utf-8;' });
+    const link = document.createElement('a');
+    link.href = URL.createObjectURL(blob);
+    link.download = 'modelo_tabela_precos.csv';
+    link.click();
+  };
+
   return (
     <DashboardLayout>
       <div className="space-y-6">
@@ -754,6 +827,51 @@ export default function PropertiesManagement() {
             </DialogHeader>
 
             <div className="space-y-6 py-4">
+              {/* Upload de tabela */}
+              <Card className="border-dashed border-2 border-primary/30 bg-primary/5">
+                <CardContent className="p-4">
+                  <div className="flex items-center justify-between gap-4">
+                    <div className="flex-1">
+                      <h4 className="font-medium text-sm flex items-center gap-2">
+                        <Upload className="w-4 h-4 text-primary" />
+                        Importar Tabela de Preços
+                      </h4>
+                      <p className="text-xs text-muted-foreground mt-1">
+                        Envie um arquivo CSV com os dados das unidades
+                      </p>
+                    </div>
+                    <div className="flex items-center gap-2">
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        onClick={downloadTemplateCSV}
+                        className="text-xs"
+                      >
+                        <Download className="w-3.5 h-3.5 mr-1" />
+                        Baixar Modelo
+                      </Button>
+                      <div className="relative">
+                        <input
+                          type="file"
+                          accept=".csv,.txt"
+                          onChange={handlePriceTableUpload}
+                          className="absolute inset-0 w-full h-full opacity-0 cursor-pointer"
+                          disabled={uploadingPriceTable}
+                        />
+                        <Button variant="gold" size="sm" disabled={uploadingPriceTable}>
+                          {uploadingPriceTable ? (
+                            <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                          ) : (
+                            <Upload className="w-4 h-4 mr-2" />
+                          )}
+                          Enviar CSV
+                        </Button>
+                      </div>
+                    </div>
+                  </div>
+                </CardContent>
+              </Card>
+
               {/* Formulário de adição/edição */}
               <Card>
                 <CardHeader className="pb-3">
