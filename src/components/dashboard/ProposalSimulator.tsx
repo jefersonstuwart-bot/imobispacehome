@@ -6,13 +6,16 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Textarea } from '@/components/ui/textarea';
+import { Switch } from '@/components/ui/switch';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
-import { Loader2, FlaskConical, Send } from 'lucide-react';
+import { Loader2, FlaskConical, Send, UserCheck } from 'lucide-react';
 import { PROPOSAL_TYPE_LABELS, MARITAL_STATUS_LABELS } from '@/lib/constants';
 
 export function ProposalSimulator() {
   const queryClient = useQueryClient();
+  const [manualAssign, setManualAssign] = useState(false);
+  const [selectedBrokerId, setSelectedBrokerId] = useState<string>('');
   const [formData, setFormData] = useState({
     property_id: '',
     client_name: 'Cliente Teste',
@@ -40,7 +43,7 @@ export function ProposalSimulator() {
   });
 
   const { data: onlineBrokers } = useQuery({
-    queryKey: ['online-brokers-count'],
+    queryKey: ['online-brokers-list'],
     queryFn: async () => {
       const { data, error } = await supabase
         .from('profiles')
@@ -53,24 +56,53 @@ export function ProposalSimulator() {
     },
   });
 
+  const { data: allBrokers } = useQuery({
+    queryKey: ['all-brokers-list'],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from('profiles')
+        .select('id, name, status')
+        .eq('role', 'broker')
+        .eq('is_active', true)
+        .order('name');
+      if (error) throw error;
+      return data;
+    },
+  });
+
   const simulateMutation = useMutation({
     mutationFn: async () => {
       if (!formData.property_id) {
         throw new Error('Selecione um empreendimento');
       }
 
-      // Get online brokers for round-robin
-      const { data: brokers, error: brokersError } = await supabase
-        .from('broker_queue')
-        .select('broker_id, profiles!inner(status, is_active)')
-        .eq('profiles.status', 'online')
-        .eq('profiles.is_active', true)
-        .order('queue_position', { ascending: true })
-        .limit(1);
+      let assignedBrokerId: string | null = null;
 
-      if (brokersError) throw brokersError;
+      if (manualAssign) {
+        // Manual assignment
+        if (!selectedBrokerId) {
+          throw new Error('Selecione um corretor para atribuição manual');
+        }
+        assignedBrokerId = selectedBrokerId;
+      } else {
+        // Auto assignment - round robin from online brokers
+        if (onlineBrokers && onlineBrokers.length > 0) {
+          // Get broker with oldest last_assigned_at or first in list
+          const { data: queueData } = await supabase
+            .from('broker_queue')
+            .select('broker_id, last_assigned_at')
+            .in('broker_id', onlineBrokers.map(b => b.id))
+            .order('last_assigned_at', { ascending: true, nullsFirst: true })
+            .limit(1);
 
-      const assignedBrokerId = brokers?.[0]?.broker_id || null;
+          if (queueData && queueData.length > 0) {
+            assignedBrokerId = queueData[0].broker_id;
+          } else {
+            // If no queue entry, pick first online broker
+            assignedBrokerId = onlineBrokers[0].id;
+          }
+        }
+      }
 
       // Create the simulated proposal
       const { data: proposal, error } = await supabase
@@ -95,15 +127,16 @@ export function ProposalSimulator() {
 
       if (error) throw error;
 
-      // Update broker queue position if assigned
+      // Update broker queue if assigned
       if (assignedBrokerId) {
+        // Upsert into broker_queue
         await supabase
           .from('broker_queue')
-          .update({
+          .upsert({
+            broker_id: assignedBrokerId,
             last_assigned_at: new Date().toISOString(),
             queue_position: 999,
-          })
-          .eq('broker_id', assignedBrokerId);
+          }, { onConflict: 'broker_id' });
       }
 
       return { proposal, assignedBrokerId };
@@ -267,10 +300,51 @@ export function ProposalSimulator() {
             />
           </div>
 
+          {/* Manual Assignment Toggle */}
+          <div className="border rounded-lg p-4 bg-muted/50 space-y-4">
+            <div className="flex items-center justify-between">
+              <div className="space-y-0.5">
+                <Label htmlFor="manual-assign" className="flex items-center gap-2">
+                  <UserCheck className="w-4 h-4" />
+                  Atribuição Manual
+                </Label>
+                <p className="text-xs text-muted-foreground">
+                  Escolha um corretor específico (mesmo offline)
+                </p>
+              </div>
+              <Switch
+                id="manual-assign"
+                checked={manualAssign}
+                onCheckedChange={setManualAssign}
+              />
+            </div>
+
+            {manualAssign && (
+              <div className="space-y-2">
+                <Label>Selecione o Corretor</Label>
+                <Select
+                  value={selectedBrokerId}
+                  onValueChange={setSelectedBrokerId}
+                >
+                  <SelectTrigger>
+                    <SelectValue placeholder="Escolha um corretor..." />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {allBrokers?.map((broker) => (
+                      <SelectItem key={broker.id} value={broker.id}>
+                        {broker.name} {broker.status === 'online' ? '🟢' : '🔴'}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+            )}
+          </div>
+
           <Button 
             type="submit" 
             className="w-full"
-            disabled={simulateMutation.isPending || !formData.property_id}
+            disabled={simulateMutation.isPending || !formData.property_id || (manualAssign && !selectedBrokerId)}
           >
             {simulateMutation.isPending ? (
               <>
