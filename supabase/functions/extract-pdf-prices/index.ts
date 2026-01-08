@@ -23,28 +23,25 @@ serve(async (req) => {
       throw new Error('LOVABLE_API_KEY not configured');
     }
 
-    // Fazer a requisição para a API de IA com o PDF
-    const response = await fetch('https://ai.gateway.lovable.dev/v1/chat/completions', {
-      method: 'POST',
-      headers: {
-        'Authorization': `Bearer ${lovableApiKey}`,
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify({
-        model: 'google/gemini-2.5-flash',
-        messages: [
-          {
-            role: 'user',
-            content: [
-              {
-                type: 'file',
-                file: {
-                  url: pdfUrl,
-                },
-              },
-              {
-                type: 'text',
-                text: `Analise este PDF de tabela de preços de um empreendimento imobiliário e extraia as informações de cada unidade/apartamento.
+    console.log('Downloading PDF from:', pdfUrl);
+
+    // Baixar o PDF e converter para base64
+    const pdfResponse = await fetch(pdfUrl);
+    if (!pdfResponse.ok) {
+      throw new Error('Não foi possível baixar o PDF');
+    }
+
+    const pdfBuffer = await pdfResponse.arrayBuffer();
+    
+    // Converter para base64 usando btoa
+    const uint8Array = new Uint8Array(pdfBuffer);
+    let binary = '';
+    for (let i = 0; i < uint8Array.length; i++) {
+      binary += String.fromCharCode(uint8Array[i]);
+    }
+    const pdfBase64 = btoa(binary);
+
+    const prompt = `Analise este PDF de tabela de preços de um empreendimento imobiliário e extraia as informações de cada unidade/apartamento.
 
 Para cada unidade encontrada, extraia:
 - unit_type: Tipo/Nome da unidade (ex: "Apto 101", "Tipo A", "2 quartos")
@@ -72,7 +69,30 @@ Retorne APENAS um JSON válido no seguinte formato, sem nenhum texto adicional:
   ]
 }
 
-Se não conseguir extrair preços, retorne: {"prices": [], "error": "Não foi possível extrair preços deste PDF"}`,
+Se não conseguir extrair preços, retorne: {"prices": [], "error": "Não foi possível extrair preços deste PDF"}`;
+
+    // Fazer a requisição para a API de IA com o PDF em base64
+    const response = await fetch('https://ai.gateway.lovable.dev/v1/chat/completions', {
+      method: 'POST',
+      headers: {
+        'Authorization': `Bearer ${lovableApiKey}`,
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({
+        model: 'google/gemini-2.5-flash',
+        messages: [
+          {
+            role: 'user',
+            content: [
+              {
+                type: 'image_url',
+                image_url: {
+                  url: `data:application/pdf;base64,${pdfBase64}`,
+                },
+              },
+              {
+                type: 'text',
+                text: prompt,
               },
             ],
           },
@@ -89,6 +109,8 @@ Se não conseguir extrair preços, retorne: {"prices": [], "error": "Não foi po
 
     const data = await response.json();
     const content = data.choices?.[0]?.message?.content;
+
+    console.log('AI response content:', content?.substring(0, 200));
 
     if (!content) {
       throw new Error('Resposta vazia da IA');
@@ -108,6 +130,8 @@ Se não conseguir extrair preços, retorne: {"prices": [], "error": "Não foi po
       console.error('Parse error:', parseError, 'Content:', content);
       throw new Error('Erro ao interpretar resposta da IA');
     }
+
+    console.log('Extracted prices:', pricesData.prices?.length || 0);
 
     return new Response(JSON.stringify(pricesData), {
       headers: { ...corsHeaders, 'Content-Type': 'application/json' },
