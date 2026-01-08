@@ -24,6 +24,7 @@ interface PropertyCardProps {
     pdf_cover_image: string | null;
     is_mcmv?: boolean;
     mcmv_logo_url?: string | null;
+    min_income?: number | null;
     priceStats?: PriceStats | null;
   };
 }
@@ -132,15 +133,26 @@ export function PropertyCard({ property }: PropertyCardProps) {
               </div>
             </div>
 
-            {/* Preço */}
-            <div className="p-3 rounded-lg bg-primary/10 border border-primary/20">
-              <p className="text-xs text-muted-foreground mb-1">A partir de</p>
-              <p className="text-xl font-display font-bold text-primary">
-                {formatCurrency(property.priceStats.minPrice)}
-              </p>
-              <p className="text-xs text-muted-foreground">
-                ({formatCurrency(property.priceStats.pricePerM2)}/m²)
-              </p>
+            {/* Preço e Renda */}
+            <div className="space-y-2">
+              <div className="p-3 rounded-lg bg-primary/10 border border-primary/20">
+                <p className="text-xs text-muted-foreground mb-1">A partir de</p>
+                <p className="text-xl font-display font-bold text-primary">
+                  {formatCurrency(property.priceStats.minPrice)}
+                </p>
+                <p className="text-xs text-muted-foreground">
+                  ({formatCurrency(property.priceStats.pricePerM2)}/m²)
+                </p>
+              </div>
+
+              {property.min_income && (
+                <div className="p-2 rounded-lg bg-muted/50 border border-border">
+                  <p className="text-xs text-muted-foreground">Renda mínima necessária</p>
+                  <p className="text-sm font-semibold text-foreground">
+                    {formatCurrency(property.min_income)}
+                  </p>
+                </div>
+              )}
             </div>
           </div>
         ) : (
