@@ -965,6 +965,14 @@ export default function PropertiesManagement() {
                       <Building2 className="w-12 h-12 text-muted-foreground" />
                     </div>
                   )}
+                  
+                  {/* Badge MCMV */}
+                  {property.is_mcmv && (
+                    <div className="absolute top-2 left-2 bg-green-600 text-white px-2 py-1 rounded-md text-xs font-semibold shadow-lg flex items-center gap-1">
+                      🏠 MCMV
+                    </div>
+                  )}
+                  
                   <Badge
                     className={`absolute top-2 right-2 ${
                       property.is_active
