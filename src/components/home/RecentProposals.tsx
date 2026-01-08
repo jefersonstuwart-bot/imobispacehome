@@ -67,9 +67,19 @@ const mockProposals = [
   }
 ];
 
+// Stats dinâmicos que mudam a cada rotação
+const statsVariants = [
+  { proposals: 47, approval: 92, responseTime: 3, negotiated: 12 },
+  { proposals: 51, approval: 89, responseTime: 4, negotiated: 14 },
+  { proposals: 43, approval: 94, responseTime: 2, negotiated: 11 },
+  { proposals: 55, approval: 91, responseTime: 3, negotiated: 15 },
+  { proposals: 49, approval: 88, responseTime: 5, negotiated: 13 },
+];
+
 export function RecentProposals() {
   const [visibleProposals, setVisibleProposals] = useState(mockProposals.slice(0, 3));
   const [currentIndex, setCurrentIndex] = useState(0);
+  const [stats, setStats] = useState(statsVariants[0]);
 
   // Buscar propriedades reais para mesclar com mock
   const { data: properties } = useQuery({
@@ -103,6 +113,11 @@ export function RecentProposals() {
     }, 8000);
     return () => clearInterval(interval);
   }, []);
+
+  // Atualizar stats junto com a rotação
+  useEffect(() => {
+    setStats(statsVariants[currentIndex % statsVariants.length]);
+  }, [currentIndex]);
 
   useEffect(() => {
     const allProposals = properties && properties.length > 0
@@ -227,22 +242,22 @@ export function RecentProposals() {
         {/* Stats */}
         <div className="flex flex-wrap items-center justify-center gap-8 mb-12 p-6 rounded-2xl bg-secondary/30 border border-border/50">
           <div className="text-center">
-            <p className="font-display text-3xl font-bold text-primary">47</p>
+            <p className="font-display text-3xl font-bold text-primary transition-all duration-500">{stats.proposals}</p>
             <p className="text-sm text-muted-foreground">Propostas hoje</p>
           </div>
           <div className="w-px h-10 bg-border/50 hidden md:block" />
           <div className="text-center">
-            <p className="font-display text-3xl font-bold text-emerald-400">92%</p>
+            <p className="font-display text-3xl font-bold text-emerald-400 transition-all duration-500">{stats.approval}%</p>
             <p className="text-sm text-muted-foreground">Docs aprovados</p>
           </div>
           <div className="w-px h-10 bg-border/50 hidden md:block" />
           <div className="text-center">
-            <p className="font-display text-3xl font-bold text-amber-400">3 min</p>
+            <p className="font-display text-3xl font-bold text-amber-400 transition-all duration-500">{stats.responseTime} min</p>
             <p className="text-sm text-muted-foreground">Tempo médio resposta</p>
           </div>
           <div className="w-px h-10 bg-border/50 hidden md:block" />
           <div className="text-center">
-            <p className="font-display text-3xl font-bold text-blue-400">R$12M</p>
+            <p className="font-display text-3xl font-bold text-blue-400 transition-all duration-500">R${stats.negotiated}M</p>
             <p className="text-sm text-muted-foreground">Negociado esta semana</p>
           </div>
         </div>
