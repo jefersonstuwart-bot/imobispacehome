@@ -425,11 +425,11 @@ export default function PropertiesManagement() {
     const priceData = {
       property_id: propertyId,
       unit_type: priceForm.unit_type,
-      area_m2: parseFloat(priceForm.area_m2),
+      area_m2: parseBrazilianNumber(priceForm.area_m2),
       bedrooms: priceForm.bedrooms ? parseInt(priceForm.bedrooms) : null,
       suites: priceForm.suites ? parseInt(priceForm.suites) : null,
       parking_spots: priceForm.parking_spots ? parseInt(priceForm.parking_spots) : null,
-      price: parseFloat(priceForm.price),
+      price: parseBrazilianNumber(priceForm.price),
       floor: priceForm.floor || null,
       status: priceForm.status,
     };
@@ -450,6 +450,14 @@ export default function PropertiesManagement() {
 
   const formatCurrency = (value: number) => {
     return new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(value);
+  };
+
+  // Parse Brazilian currency format (261.800,00 -> 261800.00)
+  const parseBrazilianNumber = (value: string): number => {
+    if (!value) return 0;
+    // Remove dots (thousands separator) and replace comma with dot (decimal separator)
+    const normalized = value.replace(/\./g, '').replace(',', '.');
+    return parseFloat(normalized) || 0;
   };
 
   const openPricesDialog = (property: Property) => {
@@ -1041,8 +1049,8 @@ Apto 201;65.5;2;1;1;2º;365000;Reservado`;
                             <div className="space-y-1">
                               <Label className="text-xs">Preço (R$) *</Label>
                               <Input
-                                type="number"
-                                placeholder="450000"
+                                type="text"
+                                placeholder="261.800,00"
                                 value={priceForm.price}
                                 onChange={(e) => setPriceForm(prev => ({ ...prev, price: e.target.value }))}
                               />
@@ -1302,8 +1310,8 @@ Apto 201;65.5;2;1;1;2º;365000;Reservado`;
                     <div className="space-y-1">
                       <Label className="text-xs">Preço (R$) *</Label>
                       <Input
-                        type="number"
-                        placeholder="450000"
+                        type="text"
+                        placeholder="261.800,00"
                         value={priceForm.price}
                         onChange={(e) => setPriceForm(prev => ({ ...prev, price: e.target.value }))}
                       />
