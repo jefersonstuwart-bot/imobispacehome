@@ -67,26 +67,26 @@ export function HeroSection() {
         </div>
 
         {/* Indicadores de credibilidade */}
-        <div className="flex items-center justify-center gap-12 mt-20 animate-fade-in" style={{ animationDelay: '0.6s' }}>
+        <div className="flex items-center justify-center gap-12 mt-20 pb-16 animate-fade-in" style={{ animationDelay: '0.6s' }}>
           <div className="text-center">
             <p className="font-display text-3xl md:text-4xl font-bold text-primary drop-shadow-[0_0_10px_rgba(212,175,55,0.5)]">50+</p>
-            <p className="text-sm uppercase tracking-widest text-white font-medium mt-2 drop-shadow-md">Empreendimentos</p>
+            <p className="text-sm uppercase tracking-widest text-secondary font-medium mt-2">Empreendimentos</p>
           </div>
           <div className="w-px h-16 bg-primary/40" />
           <div className="text-center">
             <p className="font-display text-3xl md:text-4xl font-bold text-primary drop-shadow-[0_0_10px_rgba(212,175,55,0.5)]">R$2B+</p>
-            <p className="text-sm uppercase tracking-widest text-white font-medium mt-2 drop-shadow-md">Em Negociações</p>
+            <p className="text-sm uppercase tracking-widest text-secondary font-medium mt-2">Em Negociações</p>
           </div>
           <div className="w-px h-16 bg-primary/40" />
           <div className="text-center">
             <p className="font-display text-3xl md:text-4xl font-bold text-primary drop-shadow-[0_0_10px_rgba(212,175,55,0.5)]">500+</p>
-            <p className="text-sm uppercase tracking-widest text-white font-medium mt-2 drop-shadow-md">Clientes Premium</p>
+            <p className="text-sm uppercase tracking-widest text-secondary font-medium mt-2">Clientes Premium</p>
           </div>
         </div>
       </div>
 
-      {/* Gradiente de transição para seção abaixo */}
-      <div className="absolute bottom-0 left-0 right-0 h-32 bg-gradient-to-t from-background to-transparent" />
+      {/* Gradiente de transição para seção abaixo - mais suave */}
+      <div className="absolute bottom-0 left-0 right-0 h-48 bg-gradient-to-t from-background via-background/80 to-transparent" />
     </section>
   );
 }
