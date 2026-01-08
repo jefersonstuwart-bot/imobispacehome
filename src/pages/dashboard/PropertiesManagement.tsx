@@ -114,7 +114,7 @@ export default function PropertiesManagement() {
   });
 
   const createMutation = useMutation({
-    mutationFn: async (data: { name: string; location: string; description?: string | null; ai_description?: string | null; images?: string[]; pdf_url?: string | null; pdf_cover_image?: string | null }) => {
+    mutationFn: async (data: { name: string; location: string; description?: string | null; ai_description?: string | null; images?: string[]; pdf_url?: string | null; pdf_cover_image?: string | null; is_mcmv?: boolean; mcmv_logo_url?: string | null; min_income?: number | null }) => {
       const { error } = await supabase.from('properties').insert([data]);
       if (error) throw error;
     },
