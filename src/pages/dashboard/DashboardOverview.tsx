@@ -4,7 +4,7 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/hooks/useAuth';
 import { Building2, Users, FileText, TrendingUp, Clock, CheckCircle } from 'lucide-react';
-
+import { ProposalSimulator } from '@/components/dashboard/ProposalSimulator';
 export default function DashboardOverview() {
   const { isAdmin } = useAuth();
 
@@ -181,6 +181,9 @@ export default function DashboardOverview() {
             </CardContent>
           </Card>
         </div>
+
+        {/* Proposal Simulator - Admin Only */}
+        <ProposalSimulator />
       </div>
     </DashboardLayout>
   );
