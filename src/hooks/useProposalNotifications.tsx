@@ -51,11 +51,10 @@ export const useProposalNotifications = ({
     // Clear old keys after some time to prevent memory leak
     setTimeout(() => processedIds.current.delete(eventKey), 5000);
 
-    // BROKER: New proposal assigned to me
-    if (isBroker && eventType === 'UPDATE' && newRecord) {
+    // BROKER: New proposal assigned to me (via INSERT - when proposal is created with assignment)
+    if (isBroker && eventType === 'INSERT' && newRecord) {
       if (newRecord.assigned_broker_id === user?.id && 
-          newRecord.status === 'pending_acceptance' &&
-          oldRecord?.status !== 'pending_acceptance') {
+          newRecord.status === 'pending_acceptance') {
         
         playNotificationSound();
         
@@ -70,7 +69,48 @@ export const useProposalNotifications = ({
           <div className="flex flex-col gap-1">
             <span className="font-semibold flex items-center gap-2">
               <Bell className="w-4 h-4" />
-              Nova Proposta Recebida!
+              🔔 Nova Proposta Recebida!
+            </span>
+            <span className="text-sm">
+              {property?.name || 'Empreendimento'} - {newRecord.client_name}
+            </span>
+            <span className="text-xs text-muted-foreground">
+              Você tem 5 minutos para aceitar
+            </span>
+          </div>,
+          {
+            duration: 30000,
+            action: {
+              label: 'Ver Proposta',
+              onClick: () => window.location.href = '/dashboard/corretor',
+            },
+          }
+        );
+        
+        onNewProposal?.();
+      }
+    }
+
+    // BROKER: Proposal assigned to me via UPDATE (redistribution or manual assignment)
+    if (isBroker && eventType === 'UPDATE' && newRecord) {
+      if (newRecord.assigned_broker_id === user?.id && 
+          newRecord.status === 'pending_acceptance' &&
+          oldRecord?.assigned_broker_id !== user?.id) {
+        
+        playNotificationSound();
+        
+        // Fetch property name for the notification
+        const { data: property } = await supabase
+          .from('properties')
+          .select('name')
+          .eq('id', newRecord.property_id)
+          .maybeSingle();
+        
+        toast.info(
+          <div className="flex flex-col gap-1">
+            <span className="font-semibold flex items-center gap-2">
+              <Bell className="w-4 h-4" />
+              🔔 Nova Proposta Recebida!
             </span>
             <span className="text-sm">
               {property?.name || 'Empreendimento'} - {newRecord.client_name}
