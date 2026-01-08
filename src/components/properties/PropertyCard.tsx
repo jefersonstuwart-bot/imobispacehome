@@ -1,7 +1,17 @@
 import { Link } from 'react-router-dom';
 import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import { MapPin, FileText, ArrowRight, Eye } from 'lucide-react';
+import { MapPin, FileText, ArrowRight, Eye, Maximize2, BedDouble, Bath, Car } from 'lucide-react';
+
+interface PriceStats {
+  minArea: number;
+  maxArea: number;
+  minPrice: number;
+  pricePerM2: number;
+  bedrooms: number | null;
+  suites: number | null;
+  parkingSpots: number | null;
+}
 
 interface PropertyCardProps {
   property: {
@@ -14,13 +24,27 @@ interface PropertyCardProps {
     pdf_cover_image: string | null;
     is_mcmv?: boolean;
     mcmv_logo_url?: string | null;
+    priceStats?: PriceStats | null;
   };
 }
 
 export function PropertyCard({ property }: PropertyCardProps) {
   // Prioriza: imagem do array > imagem de capa do PDF > placeholder
   const mainImage = property.images?.[0] || property.pdf_cover_image || '/placeholder.svg';
-  const shortDescription = property.ai_description?.slice(0, 100) + '...' || 'Detalhes em breve...';
+
+  const formatCurrency = (value: number) => {
+    return new Intl.NumberFormat('pt-BR', { 
+      style: 'currency', 
+      currency: 'BRL',
+      minimumFractionDigits: 0,
+      maximumFractionDigits: 0,
+    }).format(value);
+  };
+
+  const formatArea = (min: number, max: number) => {
+    if (min === max) return `${min.toFixed(1)}`;
+    return `${min.toFixed(1)} a ${max.toFixed(1)}`;
+  };
 
   return (
     <Card className="group overflow-hidden border-0 bg-card shadow-luxury hover:shadow-gold transition-all duration-700 hover:-translate-y-3">
@@ -69,9 +93,61 @@ export function PropertyCard({ property }: PropertyCardProps) {
       </div>
 
       <CardContent className="p-6 space-y-4 bg-gradient-to-b from-card to-muted/30">
-        <p className="text-sm text-muted-foreground leading-relaxed line-clamp-2 font-light">
-          {shortDescription}
-        </p>
+        {/* Características */}
+        {property.priceStats ? (
+          <div className="space-y-4">
+            {/* Grid de características */}
+            <div className="grid grid-cols-4 gap-2 text-center">
+              <div className="p-2 rounded-lg bg-muted/50">
+                <Maximize2 className="w-4 h-4 mx-auto text-primary mb-1" />
+                <p className="text-xs text-muted-foreground">Área</p>
+                <p className="text-sm font-semibold text-foreground">
+                  {formatArea(property.priceStats.minArea, property.priceStats.maxArea)}
+                </p>
+                <p className="text-[10px] text-muted-foreground">m²</p>
+              </div>
+              
+              <div className="p-2 rounded-lg bg-muted/50">
+                <BedDouble className="w-4 h-4 mx-auto text-primary mb-1" />
+                <p className="text-xs text-muted-foreground">Quartos</p>
+                <p className="text-sm font-semibold text-foreground">
+                  {property.priceStats.bedrooms ?? '-'}
+                </p>
+              </div>
+              
+              <div className="p-2 rounded-lg bg-muted/50">
+                <Bath className="w-4 h-4 mx-auto text-primary mb-1" />
+                <p className="text-xs text-muted-foreground">Suítes</p>
+                <p className="text-sm font-semibold text-foreground">
+                  {property.priceStats.suites ?? '-'}
+                </p>
+              </div>
+              
+              <div className="p-2 rounded-lg bg-muted/50">
+                <Car className="w-4 h-4 mx-auto text-primary mb-1" />
+                <p className="text-xs text-muted-foreground">Vagas</p>
+                <p className="text-sm font-semibold text-foreground">
+                  {property.priceStats.parkingSpots ?? '-'}
+                </p>
+              </div>
+            </div>
+
+            {/* Preço */}
+            <div className="p-3 rounded-lg bg-primary/10 border border-primary/20">
+              <p className="text-xs text-muted-foreground mb-1">A partir de</p>
+              <p className="text-xl font-display font-bold text-primary">
+                {formatCurrency(property.priceStats.minPrice)}
+              </p>
+              <p className="text-xs text-muted-foreground">
+                ({formatCurrency(property.priceStats.pricePerM2)}/m²)
+              </p>
+            </div>
+          </div>
+        ) : (
+          <p className="text-sm text-muted-foreground leading-relaxed line-clamp-2 font-light">
+            {property.ai_description?.slice(0, 100) + '...' || 'Detalhes em breve...'}
+          </p>
+        )}
 
         <div className="flex items-center gap-3 pt-2">
           <Link to={`/empreendimento/${property.id}`} className="flex-1">

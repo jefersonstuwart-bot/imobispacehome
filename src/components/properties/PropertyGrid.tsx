@@ -1,6 +1,16 @@
 import { PropertyCard } from './PropertyCard';
 import { Building2 } from 'lucide-react';
 
+interface PriceStats {
+  minArea: number;
+  maxArea: number;
+  minPrice: number;
+  pricePerM2: number;
+  bedrooms: number | null;
+  suites: number | null;
+  parkingSpots: number | null;
+}
+
 interface Property {
   id: string;
   name: string;
@@ -11,6 +21,7 @@ interface Property {
   pdf_cover_image: string | null;
   is_mcmv?: boolean;
   mcmv_logo_url?: string | null;
+  priceStats?: PriceStats | null;
 }
 
 interface PropertyGridProps {
