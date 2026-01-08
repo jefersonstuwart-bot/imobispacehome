@@ -9,16 +9,58 @@ import { Sparkles } from 'lucide-react';
 
 export default function Index() {
   const { data: properties, isLoading } = useQuery({
-    queryKey: ['properties'],
+    queryKey: ['properties-with-prices'],
     queryFn: async () => {
-      const { data, error } = await supabase
+      // Buscar empreendimentos
+      const { data: propertiesData, error: propertiesError } = await supabase
         .from('properties')
         .select('*')
         .eq('is_active', true)
         .order('created_at', { ascending: false });
 
-      if (error) throw error;
-      return data;
+      if (propertiesError) throw propertiesError;
+
+      // Buscar preços para calcular características
+      const { data: pricesData, error: pricesError } = await supabase
+        .from('property_prices')
+        .select('*');
+
+      if (pricesError) throw pricesError;
+
+      // Agregar características por empreendimento
+      const propertiesWithStats = propertiesData?.map(property => {
+        const propertyPrices = pricesData?.filter(p => p.property_id === property.id) || [];
+        
+        if (propertyPrices.length === 0) {
+          return { ...property, priceStats: null };
+        }
+
+        const areas = propertyPrices.map(p => Number(p.area_m2));
+        const prices = propertyPrices.map(p => Number(p.price));
+        const bedrooms = propertyPrices.map(p => p.bedrooms).filter(b => b !== null) as number[];
+        const suites = propertyPrices.map(p => p.suites).filter(s => s !== null) as number[];
+        const parkingSpots = propertyPrices.map(p => p.parking_spots).filter(p => p !== null) as number[];
+
+        const minArea = Math.min(...areas);
+        const maxArea = Math.max(...areas);
+        const minPrice = Math.min(...prices);
+        const pricePerM2 = minArea > 0 ? minPrice / minArea : 0;
+
+        return {
+          ...property,
+          priceStats: {
+            minArea,
+            maxArea,
+            minPrice,
+            pricePerM2,
+            bedrooms: bedrooms.length > 0 ? Math.max(...bedrooms) : null,
+            suites: suites.length > 0 ? Math.max(...suites) : null,
+            parkingSpots: parkingSpots.length > 0 ? Math.max(...parkingSpots) : null,
+          }
+        };
+      });
+
+      return propertiesWithStats;
     },
   });
 
