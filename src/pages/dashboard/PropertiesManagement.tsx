@@ -80,6 +80,7 @@ export default function PropertiesManagement() {
   });
   const [editingPrice, setEditingPrice] = useState<PropertyPrice | null>(null);
   const [uploadingPriceTable, setUploadingPriceTable] = useState(false);
+  const [uploadingPricePdf, setUploadingPricePdf] = useState(false);
   const queryClient = useQueryClient();
 
   const { data: properties, isLoading } = useQuery({
@@ -518,6 +519,81 @@ export default function PropertiesManagement() {
     }
   };
 
+  const handlePricePdfUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    const propertyId = selectedPropertyForPrices?.id || editingProperty?.id;
+    if (!file || !propertyId) return;
+
+    setUploadingPricePdf(true);
+
+    try {
+      // Upload do PDF
+      const fileName = `prices-${Date.now()}-${file.name}`;
+      const { error: uploadError } = await supabase.storage
+        .from('property-documents')
+        .upload(fileName, file);
+
+      if (uploadError) throw uploadError;
+
+      const { data: urlData } = supabase.storage
+        .from('property-documents')
+        .getPublicUrl(fileName);
+
+      toast.info('PDF enviado. Extraindo preços com IA...');
+
+      // Chamar edge function para extrair preços
+      const { data, error } = await supabase.functions.invoke('extract-pdf-prices', {
+        body: { pdfUrl: urlData.publicUrl }
+      });
+
+      if (error) throw error;
+
+      if (data?.error) {
+        toast.error(data.error);
+        return;
+      }
+
+      if (!data?.prices || data.prices.length === 0) {
+        toast.error('Nenhum preço encontrado no PDF');
+        return;
+      }
+
+      // Inserir os preços extraídos
+      let imported = 0;
+      for (const price of data.prices) {
+        const priceData = {
+          property_id: propertyId,
+          unit_type: price.unit_type || 'Unidade',
+          area_m2: parseFloat(price.area_m2) || 0,
+          bedrooms: price.bedrooms ? parseInt(price.bedrooms) : null,
+          suites: price.suites ? parseInt(price.suites) : null,
+          parking_spots: price.parking_spots ? parseInt(price.parking_spots) : null,
+          floor: price.floor || null,
+          price: parseFloat(price.price) || 0,
+          status: price.status || 'available',
+        };
+
+        if (priceData.area_m2 > 0 && priceData.price > 0) {
+          const { error: insertError } = await supabase.from('property_prices').insert([priceData]);
+          if (!insertError) imported++;
+        }
+      }
+
+      if (imported > 0) {
+        toast.success(`${imported} unidade(s) extraída(s) do PDF com sucesso!`);
+        refetchPrices();
+      } else {
+        toast.error('Não foi possível importar os preços do PDF');
+      }
+    } catch (error) {
+      console.error('Error processing PDF:', error);
+      toast.error('Erro ao processar PDF. Tente novamente.');
+    } finally {
+      setUploadingPricePdf(false);
+      e.target.value = '';
+    }
+  };
+
   const downloadTemplateCSV = () => {
     const template = `Unidade;Área (m²);Quartos;Suítes;Vagas;Andar;Preço;Status
 Apto 101;65.5;2;1;1;1º;350000;Disponível
@@ -805,54 +881,101 @@ Apto 201;65.5;2;1;1;2º;365000;Reservado`;
                   {editingProperty ? (
                     <div className="space-y-4">
                       {/* Upload de tabela */}
-                      <Card className="border-dashed border-2 border-primary/30 bg-primary/5">
-                        <CardContent className="p-4">
-                          <div className="flex items-center justify-between gap-4">
-                            <div className="flex-1">
-                              <h4 className="font-medium text-sm flex items-center gap-2">
-                                <Upload className="w-4 h-4 text-primary" />
-                                Importar Tabela de Preços
-                              </h4>
-                              <p className="text-xs text-muted-foreground mt-1">
-                                Envie um arquivo CSV com os dados das unidades
-                              </p>
+                      <div className="grid grid-cols-2 gap-4">
+                        {/* Upload CSV */}
+                        <Card className="border-dashed border-2 border-primary/30 bg-primary/5">
+                          <CardContent className="p-4">
+                            <div className="space-y-3">
+                              <div>
+                                <h4 className="font-medium text-sm flex items-center gap-2">
+                                  <FileText className="w-4 h-4 text-primary" />
+                                  Importar via CSV
+                                </h4>
+                                <p className="text-xs text-muted-foreground mt-1">
+                                  Envie uma planilha CSV com os dados
+                                </p>
+                              </div>
+                              <div className="flex items-center gap-2">
+                                <Button
+                                  variant="outline"
+                                  size="sm"
+                                  onClick={downloadTemplateCSV}
+                                  className="text-xs flex-1"
+                                >
+                                  <Download className="w-3.5 h-3.5 mr-1" />
+                                  Modelo
+                                </Button>
+                                <div className="relative flex-1">
+                                  <input
+                                    type="file"
+                                    accept=".csv,.txt"
+                                    onChange={(e) => {
+                                      if (editingProperty) {
+                                        setSelectedPropertyForPrices(editingProperty);
+                                        handlePriceTableUpload(e);
+                                      }
+                                    }}
+                                    className="absolute inset-0 w-full h-full opacity-0 cursor-pointer"
+                                    disabled={uploadingPriceTable}
+                                  />
+                                  <Button variant="gold" size="sm" className="w-full" disabled={uploadingPriceTable}>
+                                    {uploadingPriceTable ? (
+                                      <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                                    ) : (
+                                      <Upload className="w-4 h-4 mr-2" />
+                                    )}
+                                    CSV
+                                  </Button>
+                                </div>
+                              </div>
                             </div>
-                            <div className="flex items-center gap-2">
-                              <Button
-                                variant="outline"
-                                size="sm"
-                                onClick={downloadTemplateCSV}
-                                className="text-xs"
-                              >
-                                <Download className="w-3.5 h-3.5 mr-1" />
-                                Baixar Modelo
-                              </Button>
+                          </CardContent>
+                        </Card>
+
+                        {/* Upload PDF */}
+                        <Card className="border-dashed border-2 border-primary/30 bg-primary/5">
+                          <CardContent className="p-4">
+                            <div className="space-y-3">
+                              <div>
+                                <h4 className="font-medium text-sm flex items-center gap-2">
+                                  <Sparkles className="w-4 h-4 text-primary" />
+                                  Importar via PDF (IA)
+                                </h4>
+                                <p className="text-xs text-muted-foreground mt-1">
+                                  Envie um PDF e a IA extrairá os preços
+                                </p>
+                              </div>
                               <div className="relative">
                                 <input
                                   type="file"
-                                  accept=".csv,.txt"
+                                  accept=".pdf"
                                   onChange={(e) => {
                                     if (editingProperty) {
                                       setSelectedPropertyForPrices(editingProperty);
-                                      handlePriceTableUpload(e);
+                                      handlePricePdfUpload(e);
                                     }
                                   }}
                                   className="absolute inset-0 w-full h-full opacity-0 cursor-pointer"
-                                  disabled={uploadingPriceTable}
+                                  disabled={uploadingPricePdf}
                                 />
-                                <Button variant="gold" size="sm" disabled={uploadingPriceTable}>
-                                  {uploadingPriceTable ? (
-                                    <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                                <Button variant="gold" size="sm" className="w-full" disabled={uploadingPricePdf}>
+                                  {uploadingPricePdf ? (
+                                    <>
+                                      <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                                      Processando...
+                                    </>
                                   ) : (
-                                    <Upload className="w-4 h-4 mr-2" />
+                                    <>
+                                      <Upload className="w-4 h-4 mr-2" />
+                                      Enviar PDF
+                                    </>
                                   )}
-                                  Enviar CSV
                                 </Button>
                               </div>
                             </div>
-                          </div>
-                        </CardContent>
-                      </Card>
+                          </CardContent>
+                        </Card>
+                      </div>
 
                       {/* Formulário manual */}
                       <Card>
