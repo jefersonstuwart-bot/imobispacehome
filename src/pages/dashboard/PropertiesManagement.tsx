@@ -95,18 +95,19 @@ export default function PropertiesManagement() {
   });
 
   const { data: prices, refetch: refetchPrices } = useQuery({
-    queryKey: ['property-prices', selectedPropertyForPrices?.id],
+    queryKey: ['property-prices', editingProperty?.id || selectedPropertyForPrices?.id],
     queryFn: async () => {
-      if (!selectedPropertyForPrices) return [];
+      const propertyId = editingProperty?.id || selectedPropertyForPrices?.id;
+      if (!propertyId) return [];
       const { data, error } = await supabase
         .from('property_prices')
         .select('*')
-        .eq('property_id', selectedPropertyForPrices.id)
+        .eq('property_id', propertyId)
         .order('price', { ascending: true });
       if (error) throw error;
       return data as PropertyPrice[];
     },
-    enabled: !!selectedPropertyForPrices,
+    enabled: !!(editingProperty?.id || selectedPropertyForPrices?.id),
   });
 
   const createMutation = useMutation({
@@ -414,13 +415,14 @@ export default function PropertiesManagement() {
   };
 
   const handlePriceSubmit = () => {
-    if (!selectedPropertyForPrices || !priceForm.unit_type || !priceForm.area_m2 || !priceForm.price) {
+    const propertyId = selectedPropertyForPrices?.id || editingProperty?.id;
+    if (!propertyId || !priceForm.unit_type || !priceForm.area_m2 || !priceForm.price) {
       toast.error('Preencha os campos obrigatórios');
       return;
     }
 
     const priceData = {
-      property_id: selectedPropertyForPrices.id,
+      property_id: propertyId,
       unit_type: priceForm.unit_type,
       area_m2: parseFloat(priceForm.area_m2),
       bedrooms: priceForm.bedrooms ? parseInt(priceForm.bedrooms) : null,
@@ -457,7 +459,8 @@ export default function PropertiesManagement() {
 
   const handlePriceTableUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
-    if (!file || !selectedPropertyForPrices) return;
+    const propertyId = selectedPropertyForPrices?.id || editingProperty?.id;
+    if (!file || !propertyId) return;
 
     setUploadingPriceTable(true);
 
@@ -481,7 +484,7 @@ export default function PropertiesManagement() {
 
         // Formato esperado: Tipo/Unidade, Área, Quartos, Suítes, Vagas, Andar, Preço, Status
         const priceData = {
-          property_id: selectedPropertyForPrices.id,
+          property_id: propertyId,
           unit_type: cols[0] || 'Unidade',
           area_m2: parseFloat(cols[1]?.replace(',', '.')) || 0,
           bedrooms: cols[2] ? parseInt(cols[2]) : null,
@@ -556,9 +559,10 @@ Apto 201;65.5;2;1;1;2º;365000;Reservado`;
               </DialogHeader>
 
               <Tabs defaultValue="info" className="mt-4">
-                <TabsList className="grid w-full grid-cols-3">
+                <TabsList className="grid w-full grid-cols-4">
                   <TabsTrigger value="info">Informações</TabsTrigger>
                   <TabsTrigger value="media">Mídia</TabsTrigger>
+                  <TabsTrigger value="prices" disabled={!editingProperty}>Preços</TabsTrigger>
                   <TabsTrigger value="ai">IA & Planta</TabsTrigger>
                 </TabsList>
 
@@ -794,6 +798,245 @@ Apto 201;65.5;2;1;1;2º;365000;Reservado`;
                       onChange={(e) => setFormData(prev => ({ ...prev, ai_description: e.target.value }))}
                     />
                   </div>
+                </TabsContent>
+
+                {/* Aba de Preços - só disponível ao editar */}
+                <TabsContent value="prices" className="space-y-4 py-4">
+                  {editingProperty ? (
+                    <div className="space-y-4">
+                      {/* Upload de tabela */}
+                      <Card className="border-dashed border-2 border-primary/30 bg-primary/5">
+                        <CardContent className="p-4">
+                          <div className="flex items-center justify-between gap-4">
+                            <div className="flex-1">
+                              <h4 className="font-medium text-sm flex items-center gap-2">
+                                <Upload className="w-4 h-4 text-primary" />
+                                Importar Tabela de Preços
+                              </h4>
+                              <p className="text-xs text-muted-foreground mt-1">
+                                Envie um arquivo CSV com os dados das unidades
+                              </p>
+                            </div>
+                            <div className="flex items-center gap-2">
+                              <Button
+                                variant="outline"
+                                size="sm"
+                                onClick={downloadTemplateCSV}
+                                className="text-xs"
+                              >
+                                <Download className="w-3.5 h-3.5 mr-1" />
+                                Baixar Modelo
+                              </Button>
+                              <div className="relative">
+                                <input
+                                  type="file"
+                                  accept=".csv,.txt"
+                                  onChange={(e) => {
+                                    if (editingProperty) {
+                                      setSelectedPropertyForPrices(editingProperty);
+                                      handlePriceTableUpload(e);
+                                    }
+                                  }}
+                                  className="absolute inset-0 w-full h-full opacity-0 cursor-pointer"
+                                  disabled={uploadingPriceTable}
+                                />
+                                <Button variant="gold" size="sm" disabled={uploadingPriceTable}>
+                                  {uploadingPriceTable ? (
+                                    <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                                  ) : (
+                                    <Upload className="w-4 h-4 mr-2" />
+                                  )}
+                                  Enviar CSV
+                                </Button>
+                              </div>
+                            </div>
+                          </div>
+                        </CardContent>
+                      </Card>
+
+                      {/* Formulário manual */}
+                      <Card>
+                        <CardHeader className="pb-3">
+                          <CardTitle className="text-sm font-medium">
+                            {editingPrice ? 'Editar Unidade' : 'Adicionar Manualmente'}
+                          </CardTitle>
+                        </CardHeader>
+                        <CardContent>
+                          <div className="grid grid-cols-4 gap-3">
+                            <div className="space-y-1">
+                              <Label className="text-xs">Tipo de Unidade *</Label>
+                              <Input
+                                placeholder="Ex: Apto 101"
+                                value={priceForm.unit_type}
+                                onChange={(e) => setPriceForm(prev => ({ ...prev, unit_type: e.target.value }))}
+                              />
+                            </div>
+                            <div className="space-y-1">
+                              <Label className="text-xs">Área (m²) *</Label>
+                              <Input
+                                type="number"
+                                placeholder="65"
+                                value={priceForm.area_m2}
+                                onChange={(e) => setPriceForm(prev => ({ ...prev, area_m2: e.target.value }))}
+                              />
+                            </div>
+                            <div className="space-y-1">
+                              <Label className="text-xs">Quartos</Label>
+                              <Input
+                                type="number"
+                                placeholder="2"
+                                value={priceForm.bedrooms}
+                                onChange={(e) => setPriceForm(prev => ({ ...prev, bedrooms: e.target.value }))}
+                              />
+                            </div>
+                            <div className="space-y-1">
+                              <Label className="text-xs">Suítes</Label>
+                              <Input
+                                type="number"
+                                placeholder="1"
+                                value={priceForm.suites}
+                                onChange={(e) => setPriceForm(prev => ({ ...prev, suites: e.target.value }))}
+                              />
+                            </div>
+                            <div className="space-y-1">
+                              <Label className="text-xs">Vagas</Label>
+                              <Input
+                                type="number"
+                                placeholder="2"
+                                value={priceForm.parking_spots}
+                                onChange={(e) => setPriceForm(prev => ({ ...prev, parking_spots: e.target.value }))}
+                              />
+                            </div>
+                            <div className="space-y-1">
+                              <Label className="text-xs">Andar</Label>
+                              <Input
+                                placeholder="10º"
+                                value={priceForm.floor}
+                                onChange={(e) => setPriceForm(prev => ({ ...prev, floor: e.target.value }))}
+                              />
+                            </div>
+                            <div className="space-y-1">
+                              <Label className="text-xs">Preço (R$) *</Label>
+                              <Input
+                                type="number"
+                                placeholder="450000"
+                                value={priceForm.price}
+                                onChange={(e) => setPriceForm(prev => ({ ...prev, price: e.target.value }))}
+                              />
+                            </div>
+                            <div className="space-y-1">
+                              <Label className="text-xs">Status</Label>
+                              <Select
+                                value={priceForm.status}
+                                onValueChange={(value) => setPriceForm(prev => ({ ...prev, status: value }))}
+                              >
+                                <SelectTrigger>
+                                  <SelectValue />
+                                </SelectTrigger>
+                                <SelectContent>
+                                  <SelectItem value="available">Disponível</SelectItem>
+                                  <SelectItem value="reserved">Reservado</SelectItem>
+                                  <SelectItem value="sold">Vendido</SelectItem>
+                                </SelectContent>
+                              </Select>
+                            </div>
+                          </div>
+                          <div className="flex justify-end gap-2 mt-4">
+                            {editingPrice && (
+                              <Button variant="outline" size="sm" onClick={resetPriceForm}>
+                                Cancelar
+                              </Button>
+                            )}
+                            <Button
+                              variant="gold"
+                              size="sm"
+                              onClick={() => {
+                                if (editingProperty) {
+                                  setSelectedPropertyForPrices(editingProperty);
+                                  handlePriceSubmit();
+                                }
+                              }}
+                              disabled={createPriceMutation.isPending || updatePriceMutation.isPending}
+                            >
+                              {(createPriceMutation.isPending || updatePriceMutation.isPending) && (
+                                <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                              )}
+                              {editingPrice ? 'Atualizar' : 'Adicionar'}
+                            </Button>
+                          </div>
+                        </CardContent>
+                      </Card>
+
+                      {/* Tabela de preços */}
+                      <div className="rounded-lg border overflow-hidden">
+                        <Table>
+                          <TableHeader>
+                            <TableRow>
+                              <TableHead>Unidade</TableHead>
+                              <TableHead>Área</TableHead>
+                              <TableHead>Quartos</TableHead>
+                              <TableHead>Vagas</TableHead>
+                              <TableHead>Preço</TableHead>
+                              <TableHead>Status</TableHead>
+                              <TableHead className="w-20">Ações</TableHead>
+                            </TableRow>
+                          </TableHeader>
+                          <TableBody>
+                            {prices?.length === 0 ? (
+                              <TableRow>
+                                <TableCell colSpan={7} className="text-center py-8 text-muted-foreground">
+                                  Nenhum preço cadastrado
+                                </TableCell>
+                              </TableRow>
+                            ) : (
+                              prices?.map((price) => (
+                                <TableRow key={price.id}>
+                                  <TableCell className="font-medium">{price.unit_type}</TableCell>
+                                  <TableCell>{price.area_m2}m²</TableCell>
+                                  <TableCell>{price.bedrooms || '-'}</TableCell>
+                                  <TableCell>{price.parking_spots || '-'}</TableCell>
+                                  <TableCell className="font-semibold text-primary">
+                                    {formatCurrency(Number(price.price))}
+                                  </TableCell>
+                                  <TableCell>
+                                    <Badge
+                                      variant={price.status === 'available' ? 'default' : price.status === 'reserved' ? 'secondary' : 'destructive'}
+                                    >
+                                      {price.status === 'available' ? 'Disponível' : price.status === 'reserved' ? 'Reservado' : 'Vendido'}
+                                    </Badge>
+                                  </TableCell>
+                                  <TableCell>
+                                    <div className="flex items-center gap-1">
+                                      <Button variant="ghost" size="icon" className="h-7 w-7" onClick={() => handleEditPrice(price)}>
+                                        <Pencil className="w-3.5 h-3.5" />
+                                      </Button>
+                                      <Button
+                                        variant="ghost"
+                                        size="icon"
+                                        className="h-7 w-7 text-destructive hover:text-destructive"
+                                        onClick={() => {
+                                          if (confirm('Remover este preço?')) {
+                                            deletePriceMutation.mutate(price.id);
+                                          }
+                                        }}
+                                      >
+                                        <Trash2 className="w-3.5 h-3.5" />
+                                      </Button>
+                                    </div>
+                                  </TableCell>
+                                </TableRow>
+                              ))
+                            )}
+                          </TableBody>
+                        </Table>
+                      </div>
+                    </div>
+                  ) : (
+                    <div className="text-center py-8 text-muted-foreground">
+                      <DollarSign className="w-12 h-12 mx-auto mb-4 opacity-50" />
+                      <p>Salve o empreendimento primeiro para adicionar preços</p>
+                    </div>
+                  )}
                 </TabsContent>
               </Tabs>
 
