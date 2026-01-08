@@ -168,6 +168,7 @@ export type Database = {
           is_mcmv: boolean | null
           location: string
           mcmv_logo_url: string | null
+          min_income: number | null
           name: string
           pdf_cover_image: string | null
           pdf_url: string | null
@@ -184,6 +185,7 @@ export type Database = {
           is_mcmv?: boolean | null
           location: string
           mcmv_logo_url?: string | null
+          min_income?: number | null
           name: string
           pdf_cover_image?: string | null
           pdf_url?: string | null
@@ -200,6 +202,7 @@ export type Database = {
           is_mcmv?: boolean | null
           location?: string
           mcmv_logo_url?: string | null
+          min_income?: number | null
           name?: string
           pdf_cover_image?: string | null
           pdf_url?: string | null

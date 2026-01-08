@@ -29,6 +29,7 @@ interface Property {
   is_active: boolean;
   is_mcmv: boolean;
   mcmv_logo_url: string | null;
+  min_income: number | null;
   created_at: string;
 }
 
@@ -53,6 +54,7 @@ export default function PropertiesManagement() {
     location: '',
     description: '',
     ai_description: '',
+    min_income: '',
   });
   const [uploadingImages, setUploadingImages] = useState(false);
   const [uploadedImages, setUploadedImages] = useState<string[]>([]);
@@ -200,7 +202,7 @@ export default function PropertiesManagement() {
   });
 
   const resetForm = () => {
-    setFormData({ name: '', location: '', description: '', ai_description: '' });
+    setFormData({ name: '', location: '', description: '', ai_description: '', min_income: '' });
     setUploadedImages([]);
     setPdfUrl(null);
     setPdfCoverImage(null);
@@ -231,6 +233,7 @@ export default function PropertiesManagement() {
       location: property.location,
       description: property.description || '',
       ai_description: property.ai_description || '',
+      min_income: property.min_income?.toString() || '',
     });
     setUploadedImages(property.images || []);
     setPdfUrl(property.pdf_url);
@@ -406,6 +409,7 @@ export default function PropertiesManagement() {
       pdf_cover_image: pdfCoverImage,
       is_mcmv: isMcmv,
       mcmv_logo_url: isMcmv ? mcmvLogoUrl : null,
+      min_income: formData.min_income ? parseBrazilianNumber(formData.min_income) : null,
     };
 
     if (editingProperty) {
@@ -678,6 +682,18 @@ Apto 201;65.5;2;1;1;2º;365000;Reservado`;
                       value={formData.description}
                       onChange={(e) => setFormData(prev => ({ ...prev, description: e.target.value }))}
                     />
+                  </div>
+
+                  <div className="space-y-2">
+                    <Label>Renda Mínima Necessária</Label>
+                    <Input
+                      placeholder="Ex: 5.100,00"
+                      value={formData.min_income}
+                      onChange={(e) => setFormData(prev => ({ ...prev, min_income: e.target.value }))}
+                    />
+                    <p className="text-xs text-muted-foreground">
+                      Renda mínima para financiamento (será exibida no card do empreendimento)
+                    </p>
                   </div>
                 </TabsContent>
 
