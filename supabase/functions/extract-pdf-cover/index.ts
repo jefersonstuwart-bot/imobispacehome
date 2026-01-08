@@ -34,23 +34,9 @@ serve(async (req) => {
       );
     }
 
-    // Download the PDF and convert to base64
-    console.log('Downloading PDF...');
-    const pdfResponse = await fetch(pdfUrl);
-    if (!pdfResponse.ok) {
-      console.error('Failed to download PDF:', pdfResponse.status);
-      return new Response(
-        JSON.stringify({ error: 'Failed to download PDF', details: `Status: ${pdfResponse.status}` }),
-        { status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
-      );
-    }
-
-    const pdfBuffer = await pdfResponse.arrayBuffer();
-    const pdfBase64 = btoa(String.fromCharCode(...new Uint8Array(pdfBuffer)));
-    const pdfDataUrl = `data:application/pdf;base64,${pdfBase64}`;
-    console.log('PDF downloaded and converted to base64, size:', pdfBuffer.byteLength);
-
-    // Use AI to generate a cover image from the PDF
+    // Use AI to generate a cover image - passando a URL diretamente ao invés de baixar
+    console.log('Calling AI API with PDF URL directly...');
+    
     const response = await fetch('https://ai.gateway.lovable.dev/v1/chat/completions', {
       method: 'POST',
       headers: {
@@ -58,28 +44,24 @@ serve(async (req) => {
         'Content-Type': 'application/json',
       },
       body: JSON.stringify({
-        model: 'google/gemini-2.5-flash-image-preview',
+        model: 'google/gemini-2.5-flash',
         messages: [
           {
             role: 'user',
             content: [
               {
                 type: 'text',
-                text: `Analise este PDF de empreendimento imobiliário e gere uma imagem de alta qualidade da fachada ou renderização principal do edifício. 
-                
+                text: `Acesse este PDF de empreendimento imobiliário e gere uma imagem de alta qualidade da fachada ou renderização principal do edifício. 
+
 A imagem deve ser:
 - Realista e profissional
 - Mostrar a vista frontal ou perspectiva elegante do edifício
 - Ter qualidade de material de marketing imobiliário de luxo
 - Aspecto moderno e sofisticado
 
-Se não conseguir extrair uma imagem do PDF, gere uma renderização 3D realista de um prédio residencial de alto padrão baseado nas informações do documento.`
-              },
-              {
-                type: 'image_url',
-                image_url: {
-                  url: pdfDataUrl
-                }
+Se não conseguir extrair uma imagem do PDF, gere uma renderização 3D realista de um prédio residencial de alto padrão baseado nas informações do documento.
+
+URL do PDF: ${pdfUrl}`
               }
             ]
           }
