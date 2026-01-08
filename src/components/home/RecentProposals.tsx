@@ -18,121 +18,96 @@ import { Link } from 'react-router-dom';
 import { formatDistanceToNow } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
 
-// Propostas fictícias de marketing para demonstração
-const mockProposals = [
-  {
-    id: 'mock-1',
-    client_name: 'Cleide M.',
-    location: 'Santa Cândida',
-    property_name: 'Residencial Vista Verde',
-    time_ago: '2 minutos',
-    status: 'Documentos enviados',
-    type: 'Financiado'
-  },
-  {
-    id: 'mock-2',
-    client_name: 'Roberto S.',
-    location: 'Batel',
-    property_name: 'Edifício Premium Tower',
-    time_ago: '8 minutos',
-    status: 'Em análise',
-    type: 'À vista'
-  },
-  {
-    id: 'mock-3',
-    client_name: 'Fernanda L.',
-    location: 'Ecoville',
-    property_name: 'Jardins do Parque',
-    time_ago: '15 minutos',
-    status: 'Aprovado',
-    type: 'Financiado'
-  },
-  {
-    id: 'mock-4',
-    client_name: 'Carlos A.',
-    location: 'Centro Cívico',
-    property_name: 'Metropolitan Business',
-    time_ago: '23 minutos',
-    status: 'Documentos enviados',
-    type: 'À vista'
-  },
-  {
-    id: 'mock-5',
-    client_name: 'Juliana P.',
-    location: 'Cabral',
-    property_name: 'Reserva do Bosque',
-    time_ago: '31 minutos',
-    status: 'Em atendimento',
-    type: 'Financiado'
-  }
+// Nomes variados para propostas fictícias de marketing
+const clientNames = [
+  'Cleide M.', 'Roberto S.', 'Fernanda L.', 'Carlos A.', 'Juliana P.',
+  'Marcos R.', 'Ana Paula T.', 'Eduardo F.', 'Patrícia C.', 'Lucas B.',
+  'Mariana G.', 'Rafael D.', 'Beatriz S.', 'Gustavo H.', 'Camila N.'
 ];
 
-// Stats dinâmicos que mudam a cada rotação
-const statsVariants = [
-  { proposals: 47, approval: 92, responseTime: 3, negotiated: 12 },
-  { proposals: 51, approval: 89, responseTime: 4, negotiated: 14 },
-  { proposals: 43, approval: 94, responseTime: 2, negotiated: 11 },
-  { proposals: 55, approval: 91, responseTime: 3, negotiated: 15 },
-  { proposals: 49, approval: 88, responseTime: 5, negotiated: 13 },
+const proposalStatuses = [
+  'Documentos enviados',
+  'Em análise',
+  'Aprovado',
+  'Em atendimento'
 ];
+
+const proposalTypes = ['Financiado', 'À vista'];
+
+const timeAgoOptions = [
+  '2 minutos', '5 minutos', '8 minutos', '12 minutos', '15 minutos',
+  '18 minutos', '23 minutos', '27 minutos', '31 minutos', '35 minutos'
+];
+
+// Stats dinâmicos que mudam a cada rotação (sem quantidade de propostas)
+const statsVariants = [
+  { approval: 92, responseTime: 3, negotiated: 12 },
+  { approval: 89, responseTime: 4, negotiated: 14 },
+  { approval: 94, responseTime: 2, negotiated: 11 },
+  { approval: 91, responseTime: 3, negotiated: 15 },
+  { approval: 88, responseTime: 5, negotiated: 13 },
+];
+
+// Gerar proposta fictícia baseada em propriedades reais
+const generateMockProposal = (property: { name: string; location: string }, index: number) => ({
+  id: `mock-${index}`,
+  client_name: clientNames[index % clientNames.length],
+  location: property.location,
+  property_name: property.name,
+  time_ago: timeAgoOptions[index % timeAgoOptions.length],
+  status: proposalStatuses[index % proposalStatuses.length],
+  type: proposalTypes[index % proposalTypes.length]
+});
 
 export function RecentProposals() {
-  const [visibleProposals, setVisibleProposals] = useState(mockProposals.slice(0, 3));
+  const [visibleProposals, setVisibleProposals] = useState<ReturnType<typeof generateMockProposal>[]>([]);
   const [currentIndex, setCurrentIndex] = useState(0);
   const [stats, setStats] = useState(statsVariants[0]);
 
-  // Buscar propriedades reais para mesclar com mock
+  // Buscar APENAS propriedades cadastradas na plataforma
   const { data: properties } = useQuery({
     queryKey: ['properties-for-marketing'],
     queryFn: async () => {
       const { data } = await supabase
         .from('properties')
         .select('name, location')
-        .eq('is_active', true)
-        .limit(5);
+        .eq('is_active', true);
       return data || [];
     },
   });
 
-  // Atualizar propostas mock com propriedades reais
-  useEffect(() => {
-    if (properties && properties.length > 0) {
-      const updatedMock = mockProposals.map((proposal, index) => ({
-        ...proposal,
-        property_name: properties[index % properties.length]?.name || proposal.property_name,
-        location: properties[index % properties.length]?.location || proposal.location,
-      }));
-      setVisibleProposals(updatedMock.slice(0, 3));
-    }
-  }, [properties]);
+  // Gerar propostas fictícias baseadas apenas em empreendimentos reais
+  const allProposals = properties && properties.length > 0
+    ? properties.flatMap((property, propIndex) => 
+        // Gerar múltiplas propostas por empreendimento com nomes diferentes
+        [0, 1, 2].map((offset) => 
+          generateMockProposal(property, propIndex * 3 + offset)
+        )
+      )
+    : [];
 
-  // Rotacionar propostas a cada 8 segundos (mais lento)
+  // Rotacionar propostas a cada 8 segundos
   useEffect(() => {
+    if (allProposals.length === 0) return;
+    
     const interval = setInterval(() => {
-      setCurrentIndex(prev => (prev + 1) % mockProposals.length);
+      setCurrentIndex(prev => (prev + 1) % Math.max(1, allProposals.length - 2));
     }, 8000);
     return () => clearInterval(interval);
-  }, []);
+  }, [allProposals.length]);
 
   // Atualizar stats junto com a rotação
   useEffect(() => {
     setStats(statsVariants[currentIndex % statsVariants.length]);
   }, [currentIndex]);
 
+  // Atualizar propostas visíveis
   useEffect(() => {
-    const allProposals = properties && properties.length > 0
-      ? mockProposals.map((proposal, index) => ({
-          ...proposal,
-          property_name: properties[index % properties.length]?.name || proposal.property_name,
-          location: properties[index % properties.length]?.location || proposal.location,
-        }))
-      : mockProposals;
+    if (allProposals.length === 0) return;
     
-    const start = currentIndex;
-    const end = start + 3;
     const selected = [];
     for (let i = 0; i < 3; i++) {
-      selected.push(allProposals[(start + i) % allProposals.length]);
+      selected.push(allProposals[(currentIndex + i) % allProposals.length]);
     }
     setVisibleProposals(selected);
   }, [currentIndex, properties]);
@@ -241,11 +216,6 @@ export function RecentProposals() {
 
         {/* Stats */}
         <div className="flex flex-wrap items-center justify-center gap-8 mb-12 p-6 rounded-2xl bg-secondary/30 border border-border/50">
-          <div className="text-center">
-            <p className="font-display text-3xl font-bold text-primary transition-all duration-500">{stats.proposals}</p>
-            <p className="text-sm text-muted-foreground">Propostas hoje</p>
-          </div>
-          <div className="w-px h-10 bg-border/50 hidden md:block" />
           <div className="text-center">
             <p className="font-display text-3xl font-bold text-emerald-400 transition-all duration-500">{stats.approval}%</p>
             <p className="text-sm text-muted-foreground">Docs aprovados</p>
