@@ -159,11 +159,15 @@ export type Database = {
       properties: {
         Row: {
           ai_description: string | null
+          bedrooms: number | null
+          category: string | null
           created_at: string | null
           created_by: string | null
           description: string | null
           id: string
           images: string[] | null
+          import_batch_id: string | null
+          import_folder_name: string | null
           is_active: boolean | null
           is_mcmv: boolean | null
           location: string
@@ -172,15 +176,22 @@ export type Database = {
           name: string
           pdf_cover_image: string | null
           pdf_url: string | null
+          property_type: string | null
+          rental_value: number | null
+          size_m2: number | null
           updated_at: string | null
         }
         Insert: {
           ai_description?: string | null
+          bedrooms?: number | null
+          category?: string | null
           created_at?: string | null
           created_by?: string | null
           description?: string | null
           id?: string
           images?: string[] | null
+          import_batch_id?: string | null
+          import_folder_name?: string | null
           is_active?: boolean | null
           is_mcmv?: boolean | null
           location: string
@@ -189,15 +200,22 @@ export type Database = {
           name: string
           pdf_cover_image?: string | null
           pdf_url?: string | null
+          property_type?: string | null
+          rental_value?: number | null
+          size_m2?: number | null
           updated_at?: string | null
         }
         Update: {
           ai_description?: string | null
+          bedrooms?: number | null
+          category?: string | null
           created_at?: string | null
           created_by?: string | null
           description?: string | null
           id?: string
           images?: string[] | null
+          import_batch_id?: string | null
+          import_folder_name?: string | null
           is_active?: boolean | null
           is_mcmv?: boolean | null
           location?: string
@@ -206,6 +224,9 @@ export type Database = {
           name?: string
           pdf_cover_image?: string | null
           pdf_url?: string | null
+          property_type?: string | null
+          rental_value?: number | null
+          size_m2?: number | null
           updated_at?: string | null
         }
         Relationships: [

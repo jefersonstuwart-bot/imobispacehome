@@ -10,7 +10,8 @@ import {
   FileText, 
   LogOut, 
   ChevronRight,
-  Loader2
+  Loader2,
+  Upload
 } from 'lucide-react';
 import logo from '@/assets/logo-imobispace.png';
 
@@ -21,6 +22,7 @@ interface DashboardLayoutProps {
 const adminLinks = [
   { href: '/dashboard', label: 'Visão Geral', icon: LayoutDashboard },
   { href: '/dashboard/empreendimentos', label: 'Empreendimentos', icon: Building2 },
+  { href: '/dashboard/importar-lote', label: 'Importar em Lote', icon: Upload },
   { href: '/dashboard/corretores', label: 'Corretores', icon: Users },
   { href: '/dashboard/propostas', label: 'Propostas', icon: FileText },
 ];
