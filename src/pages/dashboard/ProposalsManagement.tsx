@@ -111,7 +111,7 @@ export default function ProposalsManagement() {
   });
 
   const updateMutation = useMutation({
-    mutationFn: async ({ id, data }: { id: string; data: Partial<Proposal> }) => {
+    mutationFn: async ({ id, data }: { id: string; data: Partial<ProposalUpdate> }) => {
       const { error } = await supabase.from('proposals').update(data).eq('id', id);
       if (error) throw error;
     },
