@@ -53,18 +53,41 @@ export default function SiteSettings() {
     toast({ title: 'Alteração salva', description: 'O novo fundo ficará disponível após a atualização do site.' });
   };
 
-  const handleLocalFile = (file?: File) => {
+  const [uploading, setUploading] = useState(false);
+
+  const handleLocalFile = async (file?: File) => {
     if (!file) return;
     const valid = type === 'video' ? file.type.startsWith('video/') : file.type.startsWith('image/');
     if (!valid) {
       toast({ title: type === 'video' ? 'Selecione um vídeo válido' : 'Selecione uma imagem válida', variant: 'destructive' });
       return;
     }
-    const localUrl = URL.createObjectURL(file);
-    setUrl(localUrl);
-    setPreview(localUrl);
-    toast({ title: 'Arquivo selecionado', description: 'A pré-visualização está pronta. Para persistência, envie o arquivo ao Storage do projeto.' });
+    setUploading(true);
+    const ext = file.name.split('.').pop() || (type === 'video' ? 'mp4' : 'jpg');
+    const path = `hero/${Date.now()}.${ext}`;
+    const { error: uploadError } = await supabase.storage.from('site-assets').upload(path, file, {
+      cacheControl: '3600',
+      upsert: true,
+      contentType: file.type,
+    });
+    if (uploadError) {
+      setUploading(false);
+      toast({ title: 'Falha no envio do arquivo', description: uploadError.message, variant: 'destructive' });
+      return;
+    }
+    const { data: signed, error: signedError } = await supabase.storage
+      .from('site-assets')
+      .createSignedUrl(path, 60 * 60 * 24 * 365 * 10);
+    setUploading(false);
+    if (signedError || !signed?.signedUrl) {
+      toast({ title: 'Não foi possível gerar o link do arquivo', variant: 'destructive' });
+      return;
+    }
+    setUrl(signed.signedUrl);
+    setPreview(signed.signedUrl);
+    toast({ title: 'Arquivo enviado', description: 'Agora clique em "Salvar fundo" para aplicar no site.' });
   };
+
 
   if (!isAdmin) return null;
 
@@ -96,11 +119,11 @@ export default function SiteSettings() {
               </TabsList>
               <TabsContent value="image" className="space-y-4 pt-4">
                 <div><Label>Imagem do fundo</Label><p className="mb-2 text-xs text-muted-foreground">Use uma imagem em alta resolução para melhor nitidez.</p><Input value={url} onChange={(e) => setUrl(e.target.value)} placeholder="URL da imagem" /></div>
-                <label className="inline-flex cursor-pointer"><Button type="button" variant="outline" asChild><span><Upload className="mr-2 h-4 w-4" />Selecionar imagem</span></Button><input className="hidden" type="file" accept="image/*" onChange={(e) => handleLocalFile(e.target.files?.[0])} /></label>
+                <label className="inline-flex cursor-pointer"><Button type="button" variant="outline" asChild disabled={uploading}><span><Upload className="mr-2 h-4 w-4" />{uploading ? 'Enviando...' : 'Selecionar imagem'}</span></Button><input className="hidden" type="file" accept="image/*" onChange={(e) => handleLocalFile(e.target.files?.[0])} /></label>
               </TabsContent>
               <TabsContent value="video" className="space-y-4 pt-4">
                 <div><Label>Vídeo do fundo</Label><p className="mb-2 text-xs text-muted-foreground">Recomendado: MP4 ou WebM, sem áudio, otimizado para web.</p><Input value={url} onChange={(e) => setUrl(e.target.value)} placeholder="URL do vídeo" /></div>
-                <label className="inline-flex cursor-pointer"><Button type="button" variant="outline" asChild><span><Upload className="mr-2 h-4 w-4" />Selecionar vídeo</span></Button><input className="hidden" type="file" accept="video/mp4,video/webm,video/*" onChange={(e) => handleLocalFile(e.target.files?.[0])} /></label>
+                <label className="inline-flex cursor-pointer"><Button type="button" variant="outline" asChild disabled={uploading}><span><Upload className="mr-2 h-4 w-4" />{uploading ? 'Enviando...' : 'Selecionar vídeo'}</span></Button><input className="hidden" type="file" accept="video/mp4,video/webm,video/*" onChange={(e) => handleLocalFile(e.target.files?.[0])} /></label>
               </TabsContent>
             </Tabs>
 
