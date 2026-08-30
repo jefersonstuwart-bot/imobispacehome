@@ -6,6 +6,7 @@ import { BrowserRouter, Routes, Route } from "react-router-dom";
 import { AuthProvider } from "@/hooks/useAuth";
 import Index from "./pages/Index";
 import About from "./pages/About";
+import Incorporadoras from "./pages/Incorporadoras";
 import NotFound from "./pages/NotFound";
 import Auth from "./pages/Auth";
 import PropertyDetail from "./pages/PropertyDetail";
@@ -29,7 +30,7 @@ const App = () => (
         <Route path="/" element={<Index />} />
         <Route path="/sobre-nos" element={<About />} />
         <Route path="/lancamentos" element={<Index />} />
-        <Route path="/incorporadoras" element={<Index />} />
+        <Route path="/incorporadoras" element={<Incorporadoras />} />
         <Route path="/blog" element={<Index />} />
         <Route path="/contato" element={<Index />} />
         <Route path="/auth" element={<Auth />} />
