@@ -2,10 +2,9 @@ import { useQuery } from '@tanstack/react-query';
 import { Layout } from '@/components/layout/Layout';
 import { HeroSection } from '@/components/home/HeroSection';
 import { PropertyGrid } from '@/components/properties/PropertyGrid';
-import { RecentProposals } from '@/components/home/RecentProposals';
 import { PartnersSection } from '@/components/home/PartnersSection';
 import { supabase } from '@/integrations/supabase/client';
-import { Search, MapPin, Building2, BedDouble, Bath, Car, Ruler, ArrowRight } from 'lucide-react';
+import { Search, MapPin, Building2, BedDouble, Bath, Car, Ruler, ArrowRight, ShieldCheck, Sparkles, TrendingUp } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { useState } from 'react';
@@ -95,8 +94,22 @@ export default function Index() {
         </div>
       </section>
 
-      <RecentProposals />
-      <section className="py-24 bg-secondary text-white"><div className="container grid gap-10 md:grid-cols-2 md:items-center"><div><p className="text-[11px] uppercase tracking-[0.25em] text-primary font-semibold">ImobiSpace Home</p><h3 className="font-display mt-3 text-4xl md:text-5xl">Mais que uma imobiliária.<br />Uma curadoria para o seu próximo capítulo.</h3></div><div><p className="text-white/65 leading-relaxed">Atendimento personalizado para quem valoriza localização, arquitetura, segurança e potencial de valorização. Encontre seu próximo imóvel com quem entende de oportunidades.</p><Button className="mt-7 bg-primary text-primary-foreground">Falar com um especialista <ArrowRight className="ml-2 h-4 w-4" /></Button></div></div></section>
+      <section className="border-y border-black/10 bg-white py-20 px-4">
+        <div className="container">
+          <div className="mx-auto max-w-3xl text-center">
+            <p className="text-[11px] uppercase tracking-[0.3em] text-primary font-semibold">O padrão ImobiSpace</p>
+            <h2 className="mt-3 font-display text-4xl md:text-5xl text-black">Escolhas feitas com critério.</h2>
+            <p className="mt-5 text-muted-foreground leading-relaxed">Uma experiência imobiliária baseada em curadoria, confiança e atendimento próximo — para que cada decisão tenha propósito.</p>
+          </div>
+          <div className="mt-12 grid gap-px overflow-hidden rounded-2xl border border-black/10 bg-black/10 md:grid-cols-3">
+            <div className="bg-white p-8 text-center md:text-left"><ShieldCheck className="h-6 w-6 text-primary" /><h3 className="mt-5 font-display text-2xl text-black">Confiança</h3><p className="mt-3 text-sm leading-relaxed text-muted-foreground">Relacionamento transparente do primeiro contato à entrega das chaves.</p></div>
+            <div className="bg-white p-8 text-center md:text-left"><Sparkles className="h-6 w-6 text-primary" /><h3 className="mt-5 font-display text-2xl text-black">Curadoria</h3><p className="mt-3 text-sm leading-relaxed text-muted-foreground">Empreendimentos selecionados por localização, qualidade e potencial.</p></div>
+            <div className="bg-white p-8 text-center md:text-left"><TrendingUp className="h-6 w-6 text-primary" /><h3 className="mt-5 font-display text-2xl text-black">Valorização</h3><p className="mt-3 text-sm leading-relaxed text-muted-foreground">Oportunidades para quem pensa no imóvel de hoje e no patrimônio de amanhã.</p></div>
+          </div>
+        </div>
+      </section>
+
+      <section className="py-24 bg-secondary text-white px-4"><div className="container grid gap-10 md:grid-cols-2 md:items-center"><div><p className="text-[11px] uppercase tracking-[0.25em] text-primary font-semibold">ImobiSpace Home</p><h3 className="font-display mt-3 text-4xl md:text-5xl">Mais que uma imobiliária.<br />Uma curadoria para o seu próximo capítulo.</h3></div><div><p className="text-white/65 leading-relaxed">Atendimento personalizado para quem valoriza localização, arquitetura, segurança e potencial de valorização.</p><Button className="mt-7 bg-primary text-primary-foreground">Falar com um especialista <ArrowRight className="ml-2 h-4 w-4" /></Button></div></div></section>
       <PartnersSection />
     </Layout>
   );
