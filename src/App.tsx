@@ -5,6 +5,7 @@ import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { BrowserRouter, Routes, Route } from "react-router-dom";
 import { AuthProvider } from "@/hooks/useAuth";
 import Index from "./pages/Index";
+import About from "./pages/About";
 import NotFound from "./pages/NotFound";
 import Auth from "./pages/Auth";
 import PropertyDetail from "./pages/PropertyDetail";
@@ -24,32 +25,27 @@ const queryClient = new QueryClient();
 const App = () => (
   <QueryClientProvider client={queryClient}>
     <AuthProvider>
-      <TooltipProvider>
-        <Toaster />
-        <Sonner />
-        <BrowserRouter>
-          <Routes>
-            <Route path="/" element={<Index />} />
-            <Route path="/auth" element={<Auth />} />
-            <Route path="/empreendimento/:id" element={<PropertyDetail />} />
-            <Route path="/proposta/:propertyId" element={<ProposalForm />} />
-            <Route path="/proposta-enviada" element={<ProposalSuccess />} />
-            <Route path="/privacidade" element={<PrivacyPolicy />} />
-            <Route path="/termos" element={<TermsOfUse />} />
-            
-            {/* Dashboard Routes */}
-            <Route path="/dashboard" element={<DashboardOverview />} />
-            <Route path="/dashboard/empreendimentos" element={<PropertiesManagement />} />
-            <Route path="/dashboard/importar-lote" element={<BulkPropertyImport />} />
-            <Route path="/dashboard/corretores" element={<BrokersManagement />} />
-            <Route path="/dashboard/propostas" element={<ProposalsManagement />} />
-            <Route path="/dashboard/corretor" element={<BrokerDashboard />} />
-            
-            {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
-            <Route path="*" element={<NotFound />} />
-          </Routes>
-        </BrowserRouter>
-      </TooltipProvider>
+      <TooltipProvider><Toaster /><Sonner /><BrowserRouter><Routes>
+        <Route path="/" element={<Index />} />
+        <Route path="/sobre-nos" element={<About />} />
+        <Route path="/lancamentos" element={<Index />} />
+        <Route path="/incorporadoras" element={<Index />} />
+        <Route path="/blog" element={<Index />} />
+        <Route path="/contato" element={<Index />} />
+        <Route path="/auth" element={<Auth />} />
+        <Route path="/empreendimento/:id" element={<PropertyDetail />} />
+        <Route path="/proposta/:propertyId" element={<ProposalForm />} />
+        <Route path="/proposta-enviada" element={<ProposalSuccess />} />
+        <Route path="/privacidade" element={<PrivacyPolicy />} />
+        <Route path="/termos" element={<TermsOfUse />} />
+        <Route path="/dashboard" element={<DashboardOverview />} />
+        <Route path="/dashboard/empreendimentos" element={<PropertiesManagement />} />
+        <Route path="/dashboard/importar-lote" element={<BulkPropertyImport />} />
+        <Route path="/dashboard/corretores" element={<BrokersManagement />} />
+        <Route path="/dashboard/propostas" element={<ProposalsManagement />} />
+        <Route path="/dashboard/corretor" element={<BrokerDashboard />} />
+        <Route path="*" element={<NotFound />} />
+      </Routes></BrowserRouter></TooltipProvider>
     </AuthProvider>
   </QueryClientProvider>
 );
