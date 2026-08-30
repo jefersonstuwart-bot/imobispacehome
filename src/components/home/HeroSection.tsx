@@ -1,7 +1,26 @@
 import { Button } from '@/components/ui/button';
 import { Search, ChevronDown } from 'lucide-react';
+import { useEffect, useState } from 'react';
+import { supabase } from '@/integrations/supabase/client';
+
+const SETTINGS_KEY = 'imobispace_hero_background';
+const DEFAULT_IMAGE = 'https://images.unsplash.com/photo-1600607687920-4e2a09cf159d?auto=format&fit=crop&w=2400&q=90';
 
 export function HeroSection() {
+  const [background, setBackground] = useState<{ type: 'image' | 'video'; url: string }>({ type: 'image', url: DEFAULT_IMAGE });
+
+  useEffect(() => {
+    let active = true;
+    supabase.from('site_settings').select('value').eq('key', SETTINGS_KEY).maybeSingle().then(({ data }) => {
+      if (!active || !data?.value) return;
+      try {
+        const value = JSON.parse(data.value as string);
+        if (value?.url) setBackground({ type: value.type === 'video' ? 'video' : 'image', url: value.url });
+      } catch { /* ignora valor inválido */ }
+    });
+    return () => { active = false; };
+  }, []);
+
   const scrollToProperties = () => {
     document.getElementById('properties')?.scrollIntoView({ behavior: 'smooth' });
   };
@@ -9,14 +28,26 @@ export function HeroSection() {
   return (
     <section className="relative min-h-screen flex items-end overflow-hidden bg-black pt-20">
       <div className="absolute inset-0">
-        <img
-          src="https://images.unsplash.com/photo-1600607687920-4e2a09cf159d?auto=format&fit=crop&w=2400&q=90"
-          alt="Arquitetura sofisticada"
-          className="h-full w-full object-cover"
-        />
+        {background.type === 'video' ? (
+          <video
+            src={background.url}
+            autoPlay
+            muted
+            loop
+            playsInline
+            className="h-full w-full object-cover"
+          />
+        ) : (
+          <img
+            src={background.url}
+            alt="Arquitetura sofisticada"
+            className="h-full w-full object-cover"
+          />
+        )}
         <div className="absolute inset-0 bg-black/45" />
         <div className="absolute inset-0 bg-gradient-to-t from-black via-black/30 to-black/10" />
       </div>
+
 
       <div className="container relative z-10 px-4 pb-16 md:pb-24 lg:pb-28">
         <div className="max-w-4xl text-left">

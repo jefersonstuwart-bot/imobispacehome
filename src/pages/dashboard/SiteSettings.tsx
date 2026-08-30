@@ -119,11 +119,11 @@ export default function SiteSettings() {
               </TabsList>
               <TabsContent value="image" className="space-y-4 pt-4">
                 <div><Label>Imagem do fundo</Label><p className="mb-2 text-xs text-muted-foreground">Use uma imagem em alta resolução para melhor nitidez.</p><Input value={url} onChange={(e) => setUrl(e.target.value)} placeholder="URL da imagem" /></div>
-                <label className="inline-flex cursor-pointer"><Button type="button" variant="outline" asChild><span><Upload className="mr-2 h-4 w-4" />Selecionar imagem</span></Button><input className="hidden" type="file" accept="image/*" onChange={(e) => handleLocalFile(e.target.files?.[0])} /></label>
+                <label className="inline-flex cursor-pointer"><Button type="button" variant="outline" asChild disabled={uploading}><span><Upload className="mr-2 h-4 w-4" />{uploading ? 'Enviando...' : 'Selecionar imagem'}</span></Button><input className="hidden" type="file" accept="image/*" onChange={(e) => handleLocalFile(e.target.files?.[0])} /></label>
               </TabsContent>
               <TabsContent value="video" className="space-y-4 pt-4">
                 <div><Label>Vídeo do fundo</Label><p className="mb-2 text-xs text-muted-foreground">Recomendado: MP4 ou WebM, sem áudio, otimizado para web.</p><Input value={url} onChange={(e) => setUrl(e.target.value)} placeholder="URL do vídeo" /></div>
-                <label className="inline-flex cursor-pointer"><Button type="button" variant="outline" asChild><span><Upload className="mr-2 h-4 w-4" />Selecionar vídeo</span></Button><input className="hidden" type="file" accept="video/mp4,video/webm,video/*" onChange={(e) => handleLocalFile(e.target.files?.[0])} /></label>
+                <label className="inline-flex cursor-pointer"><Button type="button" variant="outline" asChild disabled={uploading}><span><Upload className="mr-2 h-4 w-4" />{uploading ? 'Enviando...' : 'Selecionar vídeo'}</span></Button><input className="hidden" type="file" accept="video/mp4,video/webm,video/*" onChange={(e) => handleLocalFile(e.target.files?.[0])} /></label>
               </TabsContent>
             </Tabs>
 
