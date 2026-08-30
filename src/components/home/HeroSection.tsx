@@ -1,5 +1,5 @@
 import { Button } from '@/components/ui/button';
-import { ArrowDown, Sparkles, Crown, Award } from 'lucide-react';
+import { Search, ArrowRight, ChevronDown } from 'lucide-react';
 
 export function HeroSection() {
   const scrollToProperties = () => {
@@ -7,86 +7,55 @@ export function HeroSection() {
   };
 
   return (
-    <section className="relative min-h-screen flex items-center justify-center overflow-hidden bg-gradient-hero">
-      {/* Padrão de fundo elegante */}
-      <div className="absolute inset-0 opacity-5">
-        <div className="absolute inset-0" style={{
-          backgroundImage: `radial-gradient(circle at 1px 1px, currentColor 1px, transparent 0)`,
-          backgroundSize: '40px 40px',
-        }} />
+    <section className="relative min-h-screen flex items-end overflow-hidden bg-black pt-20">
+      <div className="absolute inset-0">
+        <img
+          src="https://images.unsplash.com/photo-1600607687920-4e2a09cf159d?auto=format&fit=crop&w=2400&q=90"
+          alt="Arquitetura sofisticada"
+          className="h-full w-full object-cover"
+        />
+        <div className="absolute inset-0 bg-black/45" />
+        <div className="absolute inset-0 bg-gradient-to-t from-black via-black/30 to-black/10" />
       </div>
 
-      {/* Elementos flutuantes dourados */}
-      <div className="absolute top-32 left-20 w-2 h-2 rounded-full bg-primary animate-float opacity-60" />
-      <div className="absolute top-40 right-32 w-3 h-3 rounded-full bg-primary animate-float opacity-40" style={{ animationDelay: '1s' }} />
-      <div className="absolute bottom-40 left-1/4 w-2 h-2 rounded-full bg-primary animate-float opacity-50" style={{ animationDelay: '2s' }} />
-      <div className="absolute top-1/3 right-20 w-1.5 h-1.5 rounded-full bg-primary animate-float opacity-70" style={{ animationDelay: '0.5s' }} />
+      <div className="container relative z-10 px-4 pb-16 md:pb-24 lg:pb-28">
+        <div className="max-w-4xl text-left">
+          <p className="mb-5 text-xs md:text-sm uppercase tracking-[0.35em] text-white/75 font-medium">
+            ImobiSpace Home · Curitiba e Região
+          </p>
+          <h1 className="font-display text-5xl md:text-7xl lg:text-8xl font-medium leading-[0.95] text-white">
+            Experiências únicas
+            <span className="block text-primary mt-2">para morar ou investir.</span>
+          </h1>
+          <p className="mt-7 max-w-2xl text-base md:text-lg leading-relaxed text-white/75 font-light">
+            Imóveis selecionados para quem procura localização, qualidade de vida e potencial de valorização.
+          </p>
 
-      {/* Linhas decorativas */}
-      <div className="absolute top-0 left-1/2 w-px h-32 bg-gradient-to-b from-transparent via-primary/30 to-transparent" />
-      <div className="absolute bottom-0 left-1/2 w-px h-32 bg-gradient-to-t from-transparent via-primary/30 to-transparent" />
-
-      <div className="container relative z-10 text-center px-4">
-        {/* Badge de luxo */}
-        <div className="inline-flex items-center gap-3 px-6 py-3 rounded-full border border-primary/30 bg-primary/5 backdrop-blur-sm mb-8 animate-fade-in">
-          <Crown className="w-4 h-4 text-primary" />
-          <span className="text-sm font-medium tracking-widest uppercase text-primary">
-            Experiência Premium
-          </span>
-          <Award className="w-4 h-4 text-primary" />
-        </div>
-
-        {/* Título principal */}
-        <h1 className="font-display text-5xl md:text-7xl lg:text-8xl font-semibold text-white mb-6 animate-slide-up leading-tight">
-          Descubra a Arte de
-          <span className="block text-gradient mt-2">Viver com Exclusividade</span>
-        </h1>
-
-        {/* Linha decorativa */}
-        <div className="flex items-center justify-center gap-4 mb-8 animate-fade-in" style={{ animationDelay: '0.3s' }}>
-          <div className="h-px w-16 bg-gradient-to-r from-transparent to-primary/50" />
-          <Sparkles className="w-5 h-5 text-primary" />
-          <div className="h-px w-16 bg-gradient-to-l from-transparent to-primary/50" />
-        </div>
-
-        <p className="text-lg md:text-xl text-white/70 max-w-2xl mx-auto mb-12 animate-slide-up font-light tracking-wide" style={{ animationDelay: '0.2s' }}>
-          Empreendimentos selecionados com curadoria exclusiva. 
-          Cada detalhe pensado para quem valoriza o extraordinário.
-        </p>
-
-        <div className="flex flex-col sm:flex-row items-center justify-center gap-4 animate-slide-up" style={{ animationDelay: '0.4s' }}>
-          <Button 
-            variant="hero" 
-            size="xl" 
-            onClick={scrollToProperties}
-            className="group"
-          >
-            <span className="tracking-wider">Explorar Empreendimentos</span>
-            <ArrowDown className="w-5 h-5 ml-2 group-hover:translate-y-1 transition-transform" />
-          </Button>
-        </div>
-
-        {/* Indicadores de credibilidade */}
-        <div className="flex items-center justify-center gap-12 mt-20 pb-16 animate-fade-in" style={{ animationDelay: '0.6s' }}>
-          <div className="text-center">
-            <p className="font-display text-3xl md:text-4xl font-bold text-primary drop-shadow-[0_0_10px_rgba(212,175,55,0.5)]">50+</p>
-            <p className="text-sm uppercase tracking-widest text-secondary font-medium mt-2">Empreendimentos</p>
+          <div className="mt-10 max-w-4xl rounded-2xl border border-white/15 bg-black/50 p-3 backdrop-blur-xl shadow-2xl">
+            <div className="flex flex-col gap-3 md:flex-row md:items-center">
+              <div className="flex-1 rounded-xl bg-white/95 px-5 py-4 text-left">
+                <p className="text-[10px] uppercase tracking-[0.2em] text-black/50">O que você procura?</p>
+                <p className="mt-1 text-sm font-medium text-black/80">Cidade, bairro ou empreendimento</p>
+              </div>
+              <Button onClick={scrollToProperties} size="lg" className="h-auto rounded-xl bg-primary px-7 py-4 text-primary-foreground hover:bg-primary/90">
+                <Search className="mr-2 h-5 w-5" />
+                Buscar imóveis
+              </Button>
+            </div>
           </div>
-          <div className="w-px h-16 bg-primary/40" />
-          <div className="text-center">
-            <p className="font-display text-3xl md:text-4xl font-bold text-primary drop-shadow-[0_0_10px_rgba(212,175,55,0.5)]">R$2B+</p>
-            <p className="text-sm uppercase tracking-widest text-secondary font-medium mt-2">Em Negociações</p>
-          </div>
-          <div className="w-px h-16 bg-primary/40" />
-          <div className="text-center">
-            <p className="font-display text-3xl md:text-4xl font-bold text-primary drop-shadow-[0_0_10px_rgba(212,175,55,0.5)]">500+</p>
-            <p className="text-sm uppercase tracking-widest text-secondary font-medium mt-2">Clientes Premium</p>
+
+          <div className="mt-8 flex flex-wrap gap-x-10 gap-y-4 text-xs uppercase tracking-[0.2em] text-white/55">
+            <span>Alto padrão</span>
+            <span>Lançamentos</span>
+            <span>Investimentos</span>
+            <span>Atendimento personalizado</span>
           </div>
         </div>
       </div>
 
-      {/* Gradiente de transição para seção abaixo - mais suave */}
-      <div className="absolute bottom-0 left-0 right-0 h-48 bg-gradient-to-t from-background via-background/80 to-transparent" />
+      <button onClick={scrollToProperties} className="absolute bottom-7 left-1/2 z-10 -translate-x-1/2 text-white/60 transition hover:text-white" aria-label="Ver imóveis">
+        <ChevronDown className="h-6 w-6 animate-bounce" />
+      </button>
     </section>
   );
 }
