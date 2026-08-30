@@ -8,7 +8,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { useToast } from '@/hooks/use-toast';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/hooks/useAuth';
-import { Image, Video, Save, Upload } from 'lucide-react';
+import { Image as ImageIcon, Video, Save, Upload, Monitor, Smartphone } from 'lucide-react';
 
 const SETTINGS_KEY = 'imobispace_hero_background';
 
@@ -27,10 +27,10 @@ export default function SiteSettings() {
       if (data?.value) {
         try {
           const value = JSON.parse(data.value as string);
-          setType(value.type || 'image');
+          setType(value.type === 'video' ? 'video' : 'image');
           setUrl(value.url || '');
           setPreview(value.url || '');
-        } catch { /* fallback */ }
+        } catch { /* ignore invalid saved value */ }
       }
     };
     load();
@@ -38,7 +38,7 @@ export default function SiteSettings() {
 
   const handleSave = async () => {
     if (!url.trim()) {
-      toast({ title: 'Informe uma imagem ou vídeo', variant: 'destructive' });
+      toast({ title: 'Selecione ou informe um arquivo', variant: 'destructive' });
       return;
     }
     setSaving(true);
@@ -50,72 +50,63 @@ export default function SiteSettings() {
       return;
     }
     setPreview(url.trim());
-    toast({ title: 'Fundo do site atualizado', description: 'A alteração ficará disponível no site após a atualização.' });
+    toast({ title: 'Alteração salva', description: 'O novo fundo ficará disponível após a atualização do site.' });
   };
 
   const handleLocalFile = (file?: File) => {
     if (!file) return;
-    if (type === 'video' && !file.type.startsWith('video/')) {
-      toast({ title: 'Selecione um vídeo válido', variant: 'destructive' });
-      return;
-    }
-    if (type === 'image' && !file.type.startsWith('image/')) {
-      toast({ title: 'Selecione uma imagem válida', variant: 'destructive' });
+    const valid = type === 'video' ? file.type.startsWith('video/') : file.type.startsWith('image/');
+    if (!valid) {
+      toast({ title: type === 'video' ? 'Selecione um vídeo válido' : 'Selecione uma imagem válida', variant: 'destructive' });
       return;
     }
     const localUrl = URL.createObjectURL(file);
     setUrl(localUrl);
     setPreview(localUrl);
-    toast({ title: 'Arquivo selecionado', description: 'Para persistir no site, o arquivo precisa ser enviado ao Storage do projeto.' });
+    toast({ title: 'Arquivo selecionado', description: 'A pré-visualização está pronta. Para persistência, envie o arquivo ao Storage do projeto.' });
   };
 
   if (!isAdmin) return null;
 
   return (
     <DashboardLayout>
-      <div className="max-w-5xl space-y-8">
-        <div>
-          <h1 className="font-display text-3xl font-bold">Personalização do Site</h1>
-          <p className="mt-1 text-muted-foreground">Troque o fundo principal do site sem alterar o código.</p>
+      <div className="mx-auto max-w-6xl space-y-8">
+        <div className="flex flex-col gap-3 md:flex-row md:items-end md:justify-between">
+          <div>
+            <p className="text-sm font-medium uppercase tracking-[0.2em] text-primary">Painel do diretor</p>
+            <h1 className="font-display text-3xl font-bold md:text-4xl">Personalizar Site</h1>
+            <p className="mt-2 max-w-2xl text-muted-foreground">Troque o fundo principal do site sem precisar alterar o código.</p>
+          </div>
+          <div className="flex items-center gap-2 rounded-full border bg-card px-4 py-2 text-sm text-muted-foreground">
+            <Monitor className="h-4 w-4" /> Desktop
+            <span>•</span>
+            <Smartphone className="h-4 w-4" /> Celular
+          </div>
         </div>
 
         <Card className="border-0 shadow-elegant">
           <CardHeader>
-            <CardTitle>Fundo principal (Hero)</CardTitle>
+            <CardTitle className="text-xl">Fundo principal do site</CardTitle>
           </CardHeader>
           <CardContent className="space-y-6">
             <Tabs value={type} onValueChange={(v) => setType(v as 'image' | 'video')}>
-              <TabsList className="grid w-full max-w-md grid-cols-2">
-                <TabsTrigger value="image"><Image className="mr-2 h-4 w-4" />Imagem</TabsTrigger>
+              <TabsList className="grid w-full max-w-lg grid-cols-2">
+                <TabsTrigger value="image"><ImageIcon className="mr-2 h-4 w-4" />Imagem</TabsTrigger>
                 <TabsTrigger value="video"><Video className="mr-2 h-4 w-4" />Vídeo</TabsTrigger>
               </TabsList>
-              <TabsContent value="image" className="space-y-4">
-                <Label>Arquivo ou URL da imagem</Label>
-                <Input value={url} onChange={(e) => setUrl(e.target.value)} placeholder="Cole a URL ou selecione um arquivo" />
-                <label className="inline-flex cursor-pointer">
-                  <Button type="button" variant="outline" asChild><span><Upload className="mr-2 h-4 w-4" />Selecionar imagem</span></Button>
-                  <input className="hidden" type="file" accept="image/*" onChange={(e) => handleLocalFile(e.target.files?.[0])} />
-                </label>
+              <TabsContent value="image" className="space-y-4 pt-4">
+                <div><Label>Imagem do fundo</Label><p className="mb-2 text-xs text-muted-foreground">Use uma imagem em alta resolução para melhor nitidez.</p><Input value={url} onChange={(e) => setUrl(e.target.value)} placeholder="URL da imagem" /></div>
+                <label className="inline-flex cursor-pointer"><Button type="button" variant="outline" asChild><span><Upload className="mr-2 h-4 w-4" />Selecionar imagem</span></Button><input className="hidden" type="file" accept="image/*" onChange={(e) => handleLocalFile(e.target.files?.[0])} /></label>
               </TabsContent>
-              <TabsContent value="video" className="space-y-4">
-                <Label>Arquivo ou URL do vídeo</Label>
-                <Input value={url} onChange={(e) => setUrl(e.target.value)} placeholder="Cole a URL ou selecione um MP4/WebM" />
-                <label className="inline-flex cursor-pointer">
-                  <Button type="button" variant="outline" asChild><span><Upload className="mr-2 h-4 w-4" />Selecionar vídeo</span></Button>
-                  <input className="hidden" type="file" accept="video/mp4,video/webm,video/*" onChange={(e) => handleLocalFile(e.target.files?.[0])} />
-                </label>
+              <TabsContent value="video" className="space-y-4 pt-4">
+                <div><Label>Vídeo do fundo</Label><p className="mb-2 text-xs text-muted-foreground">Recomendado: MP4 ou WebM, sem áudio, otimizado para web.</p><Input value={url} onChange={(e) => setUrl(e.target.value)} placeholder="URL do vídeo" /></div>
+                <label className="inline-flex cursor-pointer"><Button type="button" variant="outline" asChild><span><Upload className="mr-2 h-4 w-4" />Selecionar vídeo</span></Button><input className="hidden" type="file" accept="video/mp4,video/webm,video/*" onChange={(e) => handleLocalFile(e.target.files?.[0])} /></label>
               </TabsContent>
             </Tabs>
 
-            {preview && (
-              <div className="overflow-hidden rounded-xl border bg-muted aspect-[16/7]">
-                {type === 'video' ? <video src={preview} muted autoPlay loop playsInline className="h-full w-full object-cover" /> : <img src={preview} alt="Pré-visualização do fundo" className="h-full w-full object-cover" />}
-              </div>
-            )}
+            {preview && <div className="relative aspect-[16/7] overflow-hidden rounded-2xl border bg-muted shadow-sm">{type === 'video' ? <video src={preview} muted autoPlay loop playsInline className="h-full w-full object-cover" /> : <img src={preview} alt="Pré-visualização do fundo" className="h-full w-full object-cover" />}</div>}
 
-            <Button onClick={handleSave} disabled={saving} className="gap-2">
-              <Save className="h-4 w-4" />{saving ? 'Salvando...' : 'Salvar fundo'}
-            </Button>
+            <Button onClick={handleSave} disabled={saving} className="gap-2"><Save className="h-4 w-4" />{saving ? 'Salvando...' : 'Salvar fundo'}</Button>
           </CardContent>
         </Card>
       </div>
