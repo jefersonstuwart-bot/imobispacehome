@@ -15,7 +15,9 @@ export function Header() {
   return (
     <header className="fixed top-0 left-0 right-0 z-50 border-b border-white/10 bg-black/85 backdrop-blur-xl">
       <div className="container flex h-20 items-center justify-between px-4">
-        <Link to="/" className="flex items-center" onClick={close}><img src={logo} alt="ImobiSpace Home" className="h-10 w-auto" /></Link>
+        <Link to="/" className="group flex h-16 w-[210px] items-center" onClick={close} aria-label="ImobiSpace Home — página inicial">
+          <img src={logo} alt="ImobiSpace Home" width={1080} height={1080} decoding="async" className="block h-14 w-auto max-w-full object-contain object-left transition-transform duration-300 group-hover:scale-[1.03] md:h-16" />
+        </Link>
         <nav className="hidden lg:flex items-center gap-8">
           <Link to="/lancamentos" className="nav-link">Lançamentos</Link>
           <Link to="/incorporadoras" className="nav-link">Incorporadoras</Link>
