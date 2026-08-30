@@ -10,16 +10,11 @@ export function Footer() {
           <div className="space-y-6">
             <div className="flex items-center gap-4">
               <div className="bg-black rounded-xl p-3 shadow-lg border border-white/10">
-                <img 
-                  src={logo} 
-                  alt="ImobiSpace Home" 
-                  className="h-10 w-auto"
-                />
+                <img src={logo} alt="ImobiSpace Home" className="h-10 w-auto" />
               </div>
             </div>
             <p className="text-sm text-white/60 max-w-xs leading-relaxed font-light">
-              Experiência imobiliária de alto padrão. Conectamos você aos 
-              empreendimentos mais exclusivos do mercado.
+              Experiência imobiliária de alto padrão. Conectamos você aos empreendimentos selecionados no Paraná e em Santa Catarina.
             </p>
             <div className="flex items-center gap-2 text-primary">
               <Crown className="w-4 h-4" />
@@ -34,19 +29,14 @@ export function Footer() {
                 <Mail className="w-4 h-4 text-primary/60" />
                 imobispaceltda@gmail.com
               </a>
-              <a 
-                href="https://wa.me/message/KWT6CLRH3G2MH1" 
-                target="_blank" 
-                rel="noopener noreferrer"
-                className="flex items-center gap-3 hover:text-primary transition-colors"
-              >
+              <a href="https://wa.me/message/KWT6CLRH3G2MH1" target="_blank" rel="noopener noreferrer" className="flex items-center gap-3 hover:text-primary transition-colors">
                 <Phone className="w-4 h-4 text-primary/60" />
                 (41) 99548-2208
                 <span className="text-xs bg-green-600 text-white px-2 py-0.5 rounded-full">WhatsApp</span>
               </a>
               <p className="flex items-center gap-3">
                 <MapPin className="w-4 h-4 text-primary/60" />
-                Curitiba, PR
+                Paraná e Santa Catarina
               </p>
             </div>
           </div>
@@ -56,15 +46,13 @@ export function Footer() {
             <div className="space-y-2 text-sm text-white/60 font-light">
               <p>Segunda a Sexta: 9h às 19h</p>
               <p>Sábado: 9h às 14h</p>
-              <p className="text-primary/80 font-medium mt-4">Agendamento exclusivo disponível</p>
+              <p className="text-primary/80 font-medium mt-4">Atendimento personalizado em nossa região de atuação</p>
             </div>
           </div>
         </div>
 
         <div className="border-t border-white/10 mt-12 pt-8 flex flex-col md:flex-row items-center justify-between gap-4">
-          <p className="text-xs text-white/40 tracking-wide">
-            © {new Date().getFullYear()} ImobiSpace Home. Todos os direitos reservados.
-          </p>
+          <p className="text-xs text-white/40 tracking-wide">© {new Date().getFullYear()} ImobiSpace Home. Todos os direitos reservados.</p>
           <div className="flex items-center gap-6 text-xs text-white/40">
             <Link to="/privacidade" className="hover:text-primary transition-colors">Privacidade</Link>
             <Link to="/termos" className="hover:text-primary transition-colors">Termos</Link>
