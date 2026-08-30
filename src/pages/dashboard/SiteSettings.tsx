@@ -53,18 +53,41 @@ export default function SiteSettings() {
     toast({ title: 'Alteração salva', description: 'O novo fundo ficará disponível após a atualização do site.' });
   };
 
-  const handleLocalFile = (file?: File) => {
+  const [uploading, setUploading] = useState(false);
+
+  const handleLocalFile = async (file?: File) => {
     if (!file) return;
     const valid = type === 'video' ? file.type.startsWith('video/') : file.type.startsWith('image/');
     if (!valid) {
       toast({ title: type === 'video' ? 'Selecione um vídeo válido' : 'Selecione uma imagem válida', variant: 'destructive' });
       return;
     }
-    const localUrl = URL.createObjectURL(file);
-    setUrl(localUrl);
-    setPreview(localUrl);
-    toast({ title: 'Arquivo selecionado', description: 'A pré-visualização está pronta. Para persistência, envie o arquivo ao Storage do projeto.' });
+    setUploading(true);
+    const ext = file.name.split('.').pop() || (type === 'video' ? 'mp4' : 'jpg');
+    const path = `hero/${Date.now()}.${ext}`;
+    const { error: uploadError } = await supabase.storage.from('site-assets').upload(path, file, {
+      cacheControl: '3600',
+      upsert: true,
+      contentType: file.type,
+    });
+    if (uploadError) {
+      setUploading(false);
+      toast({ title: 'Falha no envio do arquivo', description: uploadError.message, variant: 'destructive' });
+      return;
+    }
+    const { data: signed, error: signedError } = await supabase.storage
+      .from('site-assets')
+      .createSignedUrl(path, 60 * 60 * 24 * 365 * 10);
+    setUploading(false);
+    if (signedError || !signed?.signedUrl) {
+      toast({ title: 'Não foi possível gerar o link do arquivo', variant: 'destructive' });
+      return;
+    }
+    setUrl(signed.signedUrl);
+    setPreview(signed.signedUrl);
+    toast({ title: 'Arquivo enviado', description: 'Agora clique em "Salvar fundo" para aplicar no site.' });
   };
+
 
   if (!isAdmin) return null;
 
