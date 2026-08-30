@@ -20,6 +20,7 @@ import BrokersManagement from "./pages/dashboard/BrokersManagement";
 import ProposalsManagement from "./pages/dashboard/ProposalsManagement";
 import BrokerDashboard from "./pages/dashboard/BrokerDashboard";
 import BulkPropertyImport from "./pages/dashboard/BulkPropertyImport";
+import SiteSettings from "./pages/dashboard/SiteSettings";
 
 const queryClient = new QueryClient();
 
@@ -42,6 +43,7 @@ const App = () => (
         <Route path="/dashboard" element={<DashboardOverview />} />
         <Route path="/dashboard/empreendimentos" element={<PropertiesManagement />} />
         <Route path="/dashboard/importar-lote" element={<BulkPropertyImport />} />
+        <Route path="/dashboard/configuracoes" element={<SiteSettings />} />
         <Route path="/dashboard/corretores" element={<BrokersManagement />} />
         <Route path="/dashboard/propostas" element={<ProposalsManagement />} />
         <Route path="/dashboard/corretor" element={<BrokerDashboard />} />
