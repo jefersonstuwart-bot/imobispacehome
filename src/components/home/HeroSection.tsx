@@ -1,5 +1,5 @@
 import { Button } from '@/components/ui/button';
-import { Search, ArrowRight, ChevronDown } from 'lucide-react';
+import { Search, ChevronDown } from 'lucide-react';
 
 export function HeroSection() {
   const scrollToProperties = () => {
@@ -21,14 +21,14 @@ export function HeroSection() {
       <div className="container relative z-10 px-4 pb-16 md:pb-24 lg:pb-28">
         <div className="max-w-4xl text-left">
           <p className="mb-5 text-xs md:text-sm uppercase tracking-[0.35em] text-white/75 font-medium">
-            ImobiSpace Home · Curitiba e Região
+            ImobiSpace Home · Paraná & Santa Catarina
           </p>
           <h1 className="font-display text-5xl md:text-7xl lg:text-8xl font-medium leading-[0.95] text-white">
             Experiências únicas
             <span className="block text-primary mt-2">para morar ou investir.</span>
           </h1>
           <p className="mt-7 max-w-2xl text-base md:text-lg leading-relaxed text-white/75 font-light">
-            Imóveis selecionados para quem procura localização, qualidade de vida e potencial de valorização.
+            Imóveis selecionados no Paraná e em Santa Catarina para quem procura localização, qualidade de vida e potencial de valorização.
           </p>
 
           <div className="mt-10 max-w-4xl rounded-2xl border border-white/15 bg-black/50 p-3 backdrop-blur-xl shadow-2xl">
@@ -47,7 +47,8 @@ export function HeroSection() {
           <div className="mt-8 flex flex-wrap gap-x-10 gap-y-4 text-xs uppercase tracking-[0.2em] text-white/55">
             <span>Alto padrão</span>
             <span>Lançamentos</span>
-            <span>Investimentos</span>
+            <span>Paraná</span>
+            <span>Santa Catarina</span>
             <span>Atendimento personalizado</span>
           </div>
         </div>
