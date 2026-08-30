@@ -55,6 +55,8 @@ interface Proposal {
   profiles?: { name: string; email: string };
 }
 
+type ProposalUpdate = Omit<Proposal, 'id' | 'properties' | 'profiles'>;
+
 interface Document {
   id: string;
   document_type: string;
@@ -109,7 +111,7 @@ export default function ProposalsManagement() {
   });
 
   const updateMutation = useMutation({
-    mutationFn: async ({ id, data }: { id: string; data: Partial<Proposal> }) => {
+    mutationFn: async ({ id, data }: { id: string; data: Partial<ProposalUpdate> }) => {
       const { error } = await supabase.from('proposals').update(data).eq('id', id);
       if (error) throw error;
     },
