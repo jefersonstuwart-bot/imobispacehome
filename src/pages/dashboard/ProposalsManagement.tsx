@@ -55,6 +55,8 @@ interface Proposal {
   profiles?: { name: string; email: string };
 }
 
+type ProposalUpdate = Omit<Proposal, 'id' | 'properties' | 'profiles'>;
+
 interface Document {
   id: string;
   document_type: string;
